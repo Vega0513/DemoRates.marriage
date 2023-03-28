@@ -526,19 +526,19 @@ screen2.mar4.ym <- function(data) {
   data_nodup <- data %>%
     filter(!duplicated(cbind(ID, event, y, m))) %>%
     mutate(err12 = NA) %>%
-    select(-new_index) 
+    select(-new_index)
 
   #Consider cases with same event time but different types
-  #can only deal with no more than 2 consecutive same time 
+  #can only deal with no more than 2 consecutive same time
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, y, m, event) %>%
     mutate(same.t = ifelse((lag(y)*12+lag(m))==m|(lead(y)*12+lead(m))==m, 1, NA)) %>%
-    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event), 
+    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event),
                          ifelse(same.t==1&lag(same.t)==1, lag(lag(event)), NA))) %>%
-    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event), 
+    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
-  
+
   attach(data_nodup)
-  data_nodup$same.o <- 
+  data_nodup$same.o <-
     case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
               same.t==1 & event %in% c(1,2) & lead %in% c(3,4) ~ 2,
               same.t==1 & event %in% c(1,2) & last %in% c(1,2) ~ 2,
@@ -549,12 +549,12 @@ screen2.mar4.ym <- function(data) {
               same.t==1 & event %in% c(3,4) & lead %in% c(3,4) ~ 1,
               TRUE ~ NA)
   detach(data_nodup)
-  
+
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, y, m, same.o) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index) %>%
     select(-same.t, -lead, -last, -same.o)
-  
+
   #Check first marriage duplicates（same time/within half a year）
   dup_check <- data_nodup %>% group_by(ID) %>%
     mutate(err12 = replace(err12, which(event==2&lag(event)==1&y==lag(y)&m==lag(m)), 12)) %>%
@@ -621,16 +621,16 @@ screen2.mar4.cmc <- function(data) {
     select(-new_index)
 
   #Consider cases with same event time but different types
-  #can only deal with no more than 2 consecutive same time 
+  #can only deal with no more than 2 consecutive same time
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, m, event) %>%
     mutate(same.t = ifelse(lag(m)==m|lead(m)==m, 1, NA)) %>%
-    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event), 
+    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event),
                          ifelse(same.t==1&lag(same.t)==1, lag(lag(event)), NA))) %>%
-    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event), 
+    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
-  
+
   attach(data_nodup)
-  data_nodup$same.o <- 
+  data_nodup$same.o <-
     case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
               same.t==1 & event %in% c(1,2) & lead %in% c(3,4) ~ 2,
               same.t==1 & event %in% c(1,2) & last %in% c(1,2) ~ 2,
@@ -641,12 +641,12 @@ screen2.mar4.cmc <- function(data) {
               same.t==1 & event %in% c(3,4) & lead %in% c(3,4) ~ 1,
               TRUE ~ NA)
   detach(data_nodup)
-  
+
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, m, same.o) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index) %>%
     select(-same.t, -lead, -last, -same.o)
-  
+
   #Check first marriage duplicates（same time/within half a year）
   dup_check <- data_nodup %>% group_by(ID) %>%
     mutate(err12 = replace(err12, which(event==2&lag(event)==1&m==lag(m)), 12)) %>%
@@ -696,7 +696,7 @@ recode.mar4 <- function(data) {
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
     mutate(lag.event = lag(event))
-  
+
   attach(data)
   data$type4 <- case_when(event==1 ~ 1, event==2&lag.event==3 ~ 3,
                           event==3 ~ 17, event==4 ~ 2, event==2&lag.event==4 ~ 4,
@@ -733,19 +733,19 @@ screen2.mar7.ym <- function(data) {
   data_nodup <- data %>%
     filter(!duplicated(cbind(ID, event, y, m))) %>%
     mutate(err12 = NA) %>%
-    select(-new_index) 
+    select(-new_index)
 
   #Consider cases with same event time but different types
-  #can only deal with no more than 2 consecutive same time 
+  #can only deal with no more than 2 consecutive same time
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, y, m, event) %>%
     mutate(same.t = ifelse((lag(y)*12+lag(m))==(y*12+m)|(lead(y)*12+lead(m))==(y*12+m), 1, NA)) %>%
-    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event), 
+    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event),
                          ifelse(same.t==1&lag(same.t)==1, lag(lag(event)), NA))) %>%
-    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event), 
+    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
 
   attach(data_nodup)
-  data_nodup$same.o <- 
+  data_nodup$same.o <-
     case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
               same.t==1 & event %in% c(1,2,5) & lead %in% c(3,4,6) ~ 2,
               same.t==1 & event %in% c(1,2,5) & last %in% c(1,2,5) ~ 2,
@@ -756,12 +756,12 @@ screen2.mar7.ym <- function(data) {
               same.t==1 & event %in% c(3,4,6) & lead %in% c(3,4,6) ~ 1,
               TRUE ~ NA)
   detach(data_nodup)
-  
+
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, y, m, same.o) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index) %>%
     select(-same.t, -lead, -last, -same.o)
-  
+
   #Generate lagged marital events (not cohabiting event)
   data_nodup <- data_nodup %>% group_by(ID) %>%
     mutate(lag.mar = ifelse(lag(event) %in% c(1:4), lag(event), NA)) %>%
@@ -842,16 +842,16 @@ screen2.mar7.cmc <- function(data) {
     select(-new_index)
 
   #Consider cases with same event time but different types
-  #can only deal with no more than 2 consecutive same time 
+  #can only deal with no more than 2 consecutive same time
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, m, event) %>%
     mutate(same.t = ifelse(lag(m)==m|lead(m)==m, 1, NA)) %>%
-    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event), 
+    mutate(last = ifelse(same.t==1&is.na(lag(same.t)), lag(event),
                          ifelse(same.t==1&lag(same.t)==1, lag(lag(event)), NA))) %>%
-    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event), 
+    mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
 
   attach(data_nodup)
-  data_nodup$same.o <- 
+  data_nodup$same.o <-
     case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
               same.t==1 & event %in% c(1,2,5) & lead %in% c(3,4,6) ~ 2,
               same.t==1 & event %in% c(1,2,5) & last %in% c(1,2,5) ~ 2,
@@ -862,12 +862,12 @@ screen2.mar7.cmc <- function(data) {
               same.t==1 & event %in% c(3,4,6) & lead %in% c(3,4,6) ~ 1,
               TRUE ~ NA)
   detach(data_nodup)
-  
+
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, m, same.o) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index) %>%
     select(-same.t, -lead, -last, -same.o)
-  
+
   #Generate lagged marital events (not cohabiting event)
   data_nodup <- data_nodup %>% group_by(ID) %>%
     mutate(lag.mar = ifelse(lag(event) %in% c(1:4), lag(event), NA)) %>%
@@ -935,8 +935,8 @@ recode.mar7 <- function(data) {
     fill(next.mar, next.age, .direction = "up")
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
-    mutate(lag.event = lag(event)) 
-  
+    mutate(lag.event = lag(event))
+
   attach(data)
   data$type7 <- case_when(event==3 ~ 17,                                             #From Married to Widowed & Not Cohabiting
                           event==4 ~ 2,                                              #From Married to Divorced & Not Cohabiting
@@ -973,7 +973,7 @@ recode.mar7 <- function(data) {
                           lag.mar==4&event==6 ~ 10,                                  #From Divorced & Cohabiting to Divorced & Not cohabiting
                           TRUE ~ NA_real_)
   detach(data)
-  
+
   data <- data %>% mutate(new_index = row_number()) %>%
     mutate(events = ifelse(rowSums(is.na(cbind(event, m)))==2&n()==1, 0, n())) %>%
     mutate(m = replace(m,TRUE,ceiling(m))) %>%
@@ -1504,7 +1504,7 @@ recode.lh <- function(data) {
 
 ##------Migration------
 screen1.mig.ym <- function(data,code) {
-  
+
   #从name中取所有国家和地区的代码
   name <- as.data.frame(code)
   if (is.null(name$`Region code`) & is.null(name$`Country code`))  {
@@ -1515,7 +1515,7 @@ screen1.mig.ym <- function(data,code) {
   }
   #合成一个code
   state_code <- c(region_code, country_code)
-  
+
   ##用leaving的判定,把event的代码修改
   info <- data %>% select(region:bMonth)
   evt <- data %>% select(ID, y1:ncol(data))
@@ -1529,16 +1529,16 @@ screen1.mig.ym <- function(data,code) {
   names(long)[3:6] <- names(long)[6:3]       ### 把event idex后面的列的名字换了过来
   names(long)[4:5] <- names(long)[5:4]       ### 把 ru和m换位置
   names(long)[names(long)=="ru"] = "movebf_ru" # ru为移动之前的城乡状态
-  
-  
+
+
   data <- long %>% arrange(ID, y, m, movebf_ru, event) %>%        #给每一个events赋一个编号newindex，（新建了event是 和 newindex
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     mutate(events = n()) %>%
     filter(rowSums(is.na(cbind(event, y, m, movebf_ru)))<4 | new_index==1)
-  
+
   data[, 'events'] = ifelse(is.na(data$event), NA, data$events)       #自己添加定义好的events
-  
+
   sys.year <- as.integer(format(Sys.Date(), "%Y"))
   sys.mon <- as.integer(format(Sys.Date(), "%m"))
   info <- info %>%
@@ -1546,16 +1546,16 @@ screen1.mig.ym <- function(data,code) {
     mutate(err2 = ifelse(is.na(bYear)|is.na(bMonth),2,NA)) %>%
     mutate(err10 = ifelse(is.na(err1)&(tYear<1000|(tYear*12+tMonth)>(sys.year*12+sys.mon)|!(tMonth %in% 1:12)),10,NA)) %>%
     mutate(err11 = ifelse(is.na(err2)&(bYear<1000|(bYear*12+bMonth)>(sys.year*12+sys.mon)|!(bMonth %in% 1:12)|(bYear*12+bMonth)>(tYear*12+tMonth)|((tYear*12+tMonth)-(bYear*12+bMonth))>120*12),11,NA))
-  
+
   data <- data %>% left_join(info, by = "ID")
-  
+
   data <- data %>%
     mutate(err4 = ifelse(is.na(event)&rowSums(is.na(cbind(event, y, m)))!=3, 4, NA)) %>%
     mutate(err3 = ifelse((is.na(y)|is.na(m))&rowSums(is.na(cbind(event, y, m)))!=3, 3, NA)) %>%
     mutate(err7 = ifelse(!(is.na(event)|event %in% state_code), 7, NA)) %>%
     mutate(err8 = ifelse((!is.na(y))&y<1000, 8, NA)) %>%
     mutate(err9 = ifelse(!(is.na(m)|m %in% 1:12), 9, NA))
-  
+
   data <- data %>% relocate(err1, err2, err3, err4, err7, err8, err9, err10, err11,
                             .before = new_index)
   return(data)
@@ -1572,7 +1572,7 @@ screen1.mig.cmc <- function(data, code) {
   }
   #合成一个code
   state_code <- c(region_code, country_code)
-  
+
   ## todo
   info <- data %>% select(region:bMonth)
   evt <- data %>% select(ID, m1:ncol(data))
@@ -1583,50 +1583,50 @@ screen1.mig.cmc <- function(data, code) {
                   times = 1:((ncol(evt)-1)/3),
                   new.row.names = 1:100000000000,
                   direction = "long") %>% arrange(ID, event_index)
-  
+
   names(long)[3:5] <- names(long)[5:3]##注意看看有没有对
   names(long)[4:5] <- names(long)[5:4]
   names(long)[names(long)=="ru"] = "movebf_ru"
-  
+
   long
   data <- long %>% arrange(ID, m, movebf_ru, event) %>%        #给每一个events赋一个编号newindex
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     mutate(events = n()) %>%                                #和screen 1 ym不一样？
     filter(rowSums(is.na(cbind(event, m, movebf_ru)))<3 | new_index==1)
-  
-  
+
+
   sys.year <- as.integer(format(Sys.Date(), "%Y"))
   sys.mon <- as.integer(format(Sys.Date(), "%m"))
   sys.cmc <- (sys.year-1900)*12+sys.mon
-  
+
   info <- info %>%
     mutate(err1 = ifelse(is.na(tMonth),1,NA)) %>%
     mutate(err2 = ifelse(is.na(bMonth),2,NA)) %>%
     mutate(err10 = ifelse(is.na(err1)&(tMonth>sys.cmc),10,NA)) %>%
     mutate(err11 = ifelse(is.na(err2)&(bMonth>sys.cmc|bMonth>tMonth|(tMonth-bMonth)>120*12),11,NA))
-  
+
   data <- data %>% left_join(info, by = "ID")
-  
+
   data <- data %>%
     mutate(err4 = ifelse(is.na(event)&rowSums(is.na(cbind(event, m)))!=2, 4, NA)) %>%
     mutate(err3 = ifelse(is.na(m)&rowSums(is.na(cbind(event, m)))!=2, 3, NA)) %>%
     mutate(err7 = ifelse(!(is.na(event)|event %in% state_code), 7, NA)) %>%
     mutate(err8 = NA) %>%
     mutate(err9 = NA)
-  
+
   data <- data %>% relocate(err1, err2, err3, err4, err7, err8, err9, err10, err11,
                             .before = new_index)
   return(data)
 }
 
 screen2.mig.ym <- function(data,code) {
-  
+
   name <- as.data.frame(code)
   region_code <- na.omit(unique(name$`Region code`))
   country_code <- na.omit(unique(name$`Country code`))
   state_code <- c(region_code, country_code)
-  
+
   #Keep domestic migration or international migration events
   # event <- data$event
   # # event_tem <- ifelse(event %in% state_code, 1, 0)
@@ -1639,8 +1639,8 @@ screen2.mig.ym <- function(data,code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     filter(rowSums(is.na(cbind(event, y, m, movebf_ru)))<4 | new_index==1)
-  
-  
+
+
   #Check duplicates with the same event time and type
   data_dup <- data %>%
     filter(duplicated(cbind(ID, event, y, m))) %>%
@@ -1652,8 +1652,8 @@ screen2.mig.ym <- function(data,code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index)
-  
-  
+
+
   #Check duplicates within half a year
   dup_check <- data_nodup %>% group_by(ID) %>%
     mutate(err12 = replace(err12, which(event==lag(event) & ((y*12+m)-(lag(y)*12+lag(m)))<=6), 12))
@@ -1662,40 +1662,40 @@ screen2.mig.ym <- function(data,code) {
   data_dup <- rbind(data_dup, data_dup2)
   rm(dup_check)
   rm(data_dup2)
-  
+
   #Check event time logic
   data_nodup <- data_nodup %>%
     mutate(err5 = ifelse((y*12+m)>(tYear*12+tMonth)|(y*12+m)<(bYear*12+bMonth), 5, NA))
-  
+
   #Check event type logic
   data_nodup <- data_nodup %>% group_by(ID) %>%
     mutate(lag.event = lag(event)) %>%
     mutate(next.event = lead(event)) %>%
     mutate(mig_check = ifelse(lag.event == event, FALSE, TRUE))  # to do？ 看是否和现在所在的state有冲突
-  
+
   data_nodup <- data_nodup %>%
     mutate(err6 = ifelse(mig_check==FALSE, 6, NA)) %>%
     select(-lag.event, -next.event, -mig_check)
-  
+
   data <- rbind(data_nodup, data_dup)
   rm(data_nodup)
   rm(data_dup)
   data <- data %>%
     relocate(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12,
              .before = new_index) %>% select(ID:err12)
-  
+
   return(data)
 }
 
 screen2.mig.cmc <- function(data, code) {
-  
+
   name <- as.data.frame(code)
   region_code <- na.omit(unique(name$`Region code`))
   country_code <- na.omit(unique(name$`Country code`))
   state_code <- c(region_code, country_code)
-  
+
   #Keep domestic migration or international migration events
-  
+
   data <- data %>%
     mutate(m = replace(m, which(!(event %in% state_code)), NA)) %>%
     mutate(event = replace(event, which(!(event %in% state_code)), NA)) %>%
@@ -1703,8 +1703,8 @@ screen2.mig.cmc <- function(data, code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     filter(rowSums(is.na(cbind(event, m, movebf_ru)))<3 | new_index==1)
-  
-  
+
+
   #Check duplicates with the same event time and type
   data_dup <- data %>%
     filter(duplicated(cbind(ID, event, m))) %>%
@@ -1716,8 +1716,8 @@ screen2.mig.cmc <- function(data, code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index)
-  
-  
+
+
   #Check duplicates within half a year
   dup_check <- data_nodup %>% group_by(ID) %>%
     mutate(err12 = replace(err12, which(event==lag(event) & (m-lag(m))<=6), 12))
@@ -1726,28 +1726,28 @@ screen2.mig.cmc <- function(data, code) {
   data_dup <- rbind(data_dup, data_dup2)
   rm(dup_check)
   rm(data_dup2)
-  
+
   #Check event time logic
   data_nodup <- data_nodup %>%
     mutate(err5 = ifelse(m>tMonth|m<bMonth, 5, NA))
-  
+
   #Check event type logic
   data_nodup <- data_nodup %>% group_by(ID) %>%
     mutate(lag.event = lag(event)) %>%
     mutate(next.event = lead(event)) %>%
     mutate(mig_check = ifelse((lag.event == event), FALSE, TRUE)) # to do？ 看是否和现在所在的state有冲突
-  
+
   data_nodup <- data_nodup %>%
     mutate(err6 = ifelse(mig_check==FALSE, 6, NA)) %>%
     select(-lag.event, -next.event, -mig_check)
-  
+
   data <- rbind(data_nodup, data_dup)
   rm(data_nodup)
   rm(data_dup)
   data <- data %>%
     relocate(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12,
              .before = new_index) %>% select(ID:err12)
-  
+
   return(data)
 }
 
@@ -1757,14 +1757,14 @@ recode.mig <- function(data, code) {
   region_code <- na.omit(unique(name$`Region code`))
   country_code <- na.omit(unique(name$`Country code`))
   state_code <- c(region_code, country_code)
-  
+
   #增加events列
   data <- data %>% group_by(ID) %>%
     arrange(ID, m, event) %>%
     mutate(new_index = row_number()) %>%    #这样就计算在同一个ID下，这是第几个
     mutate(events = ifelse(rowSums(is.na(cbind(event, m)))==2&n()==1, 0, n())) %>%
     relocate(events, .after = bMonth)
-  
+
   ##找出move的前后的state
   data <- data %>% group_by(ID) %>%
     arrange(ID, m, event) %>% mutate(new_index = row_number()) %>%
@@ -1772,8 +1772,8 @@ recode.mig <- function(data, code) {
     fill(lag.state) %>%
     mutate(next.state = lead(event)) %>%
     fill(next.state, .direction = "up")
-  
-  
+
+
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
     mutate(move.bf = event) %>%
@@ -1783,18 +1783,18 @@ recode.mig <- function(data, code) {
     relocate(move.bf, .after = event) %>%
     relocate(move.af, .after = move.bf) %>%
     select(-lag.state, -next.state)
-  
-  
+
+
   # #找出前后的ru状态 ##movebf_ru 得是迁移前的城乡状态 ！！ todo再进行核查
-  
+
   data <- data %>% group_by(ID) %>%
     arrange(ID, m, event) %>% mutate(new_index = row_number()) %>%
     mutate(lag.bfru = lag(movebf_ru)) %>%
     fill(lag.bfru) %>%
     mutate(next.bfru = lead(movebf_ru)) %>%
     fill(next.bfru, .direction = "up")
-  
-  
+
+
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
     mutate(moveaf_ru = case_when(!(is.na(next.bfru)) ~ next.bfru,
@@ -1802,7 +1802,7 @@ recode.mig <- function(data, code) {
                                  TRUE ~ NA_real_))%>%
     relocate(moveaf_ru, .after = movebf_ru) %>%
     select(-lag.bfru, -next.bfru)
-  
+
   data
   return(data)
 }
@@ -1810,7 +1810,7 @@ recode.mig <- function(data, code) {
 ##------General-------
 
 screen1.def.ym <- function(data,code) {
-  
+
   #从name中取所有status
   name <- as.data.frame(code)
   if (is.null(name$`Event code`) & is.null(name$`Status code`))  {
@@ -1820,11 +1820,11 @@ screen1.def.ym <- function(data,code) {
     status_code <- na.omit(unique(name$`Status code`))
     len_ec <- nchar(status_code[1])
   }
-  
+
   ## todo, check all event lengths are the same
-  
-  
-  
+
+
+
   info <- data %>% select(region:bMonth)
   evt <- data %>% select(ID, y1:ncol(data))
   long <- reshape(evt, idvar = "ID",
@@ -1835,20 +1835,20 @@ screen1.def.ym <- function(data,code) {
                   new.row.names = 1:100000000000,
                   direction = "long") %>% arrange(ID, event_index)
   names(long)[3:5] <- names(long)[5:3]
-  
+
   ##拆解event代码
   long <- long %>% mutate("status_bf" = floor(event/(10**len_ec))) %>%
     mutate("status_af" = event%%(10**len_ec))
-  
+
   long
   data <- long %>% arrange(ID, y, m, status_bf, status_af, event) %>%        #给每一个events赋一个编号newindex，（新建了event是 和 newindex
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     filter(rowSums(is.na(cbind(event, y, m, status_bf, status_af)))<5 | new_index==1) %>%
     mutate(events = n())
-  
+
   data[, 'events'] = ifelse(is.na(data$event), NA, data$events)       #自己添加定义好的events
-  
+
   sys.year <- as.integer(format(Sys.Date(), "%Y"))
   sys.mon <- as.integer(format(Sys.Date(), "%m"))
   info <- info %>%
@@ -1856,29 +1856,29 @@ screen1.def.ym <- function(data,code) {
     mutate(err2 = ifelse(is.na(bYear)|is.na(bMonth),2,NA)) %>%
     mutate(err10 = ifelse(is.na(err1)&(tYear<1000|(tYear*12+tMonth)>(sys.year*12+sys.mon)|!(tMonth %in% 1:12)),10,NA)) %>%
     mutate(err11 = ifelse(is.na(err2)&(bYear<1000|(bYear*12+bMonth)>(sys.year*12+sys.mon)|!(bMonth %in% 1:12)|(bYear*12+bMonth)>(tYear*12+tMonth)|((tYear*12+tMonth)-(bYear*12+bMonth))>120*12),11,NA))
-  
+
   data <- data %>% left_join(info, by = "ID")
-  
+
   data <- data %>%
     mutate(err4 = ifelse(is.na(event)&rowSums(is.na(cbind(event, y, m)))!=3, 4, NA)) %>%
     mutate(err3 = ifelse((is.na(y)|is.na(m))&rowSums(is.na(cbind(event, y, m)))!=3, 3, NA)) %>%
     mutate(err7 = ifelse(!(is.na(event)|event %in% event_code), 7, NA)) %>%
     mutate(err8 = ifelse((!is.na(y))&y<1000, 8, NA)) %>%
     mutate(err9 = ifelse(!(is.na(m)|m %in% 1:12), 9, NA))
-  
+
   data <- data %>% relocate(err1, err2, err3, err4, err7, err8, err9, err10, err11,
                             .before = new_index)
   return(data)
 }
 
 screen2.def.ym <- function(data,code) {
-  
+
   name <- as.data.frame(code)
   event_code <- na.omit(unique(name$`Event code`))
   status_code <- na.omit(unique(name$`Status code`))
-  
+
   #Keep events
-  
+
   data <- data %>%
     mutate(y = replace(y, which(!(event %in% event_code)), NA)) %>%
     mutate(m = replace(m, which(!(event %in% event_code)), NA)) %>%
@@ -1889,8 +1889,8 @@ screen2.def.ym <- function(data,code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     filter(rowSums(is.na(cbind(event, y, m, status_bf, status_af)))<5 | new_index==1)
-  
-  
+
+
   #Check duplicates with the same event time and type
   data_dup <- data %>%
     filter(duplicated(cbind(ID, event, y, m))) %>%
@@ -1902,8 +1902,8 @@ screen2.def.ym <- function(data,code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index)
-  
-  
+
+
   #Check duplicates within half a year
   dup_check <- data_nodup %>% group_by(ID) %>%
     mutate(err12 = replace(err12, which(event==lag(event) & ((y*12+m)-(lag(y)*12+lag(m)))<=6), 12))
@@ -1912,31 +1912,31 @@ screen2.def.ym <- function(data,code) {
   data_dup <- rbind(data_dup, data_dup2)
   rm(dup_check)
   rm(data_dup2)
-  
+
   #Check event time logic
   data_nodup <- data_nodup %>%
     mutate(err5 = ifelse((y*12+m)>(tYear*12+tMonth)|(y*12+m)<(bYear*12+bMonth), 5, NA))
-  
+
   #Check event type logic(前后两个event可以一样，但是status不能一样，比较前后的转台是否一样)
   data_nodup <- data_nodup %>% group_by(ID) %>%
     mutate(def_check = ifelse(status_af == status_bf, FALSE, TRUE))
-  
+
   data_nodup <- data_nodup %>%
     mutate(err6 = ifelse(def_check==FALSE, 6, NA)) %>%
     select(-def_check)
-  
+
   data <- rbind(data_nodup, data_dup)
   rm(data_nodup)
   rm(data_dup)
   data <- data %>%
     relocate(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12,
              .before = new_index) %>% select(ID:err12)
-  
+
   return(data)
 }
 
 screen1.def.cmc <- function(data,code) {
-  
+
   #从name中取所有status
   name <- as.data.frame(code)
   if (is.null(name$`Event code`) & is.null(name$`Status code`))  {
@@ -1946,11 +1946,11 @@ screen1.def.cmc <- function(data,code) {
     status_code <- na.omit(unique(name$`Status code`))
     len_ec <- nchar(status_code[1])
   }
-  
+
   ## todo, check all event lengths are the same
-  
-  
-  
+
+
+
   info <- data %>% select(region:bMonth)
   evt <- data %>% select(ID, m1:ncol(data))
   long <- reshape(evt, idvar = "ID",
@@ -1961,19 +1961,19 @@ screen1.def.cmc <- function(data,code) {
                   new.row.names = 1:100000000000,
                   direction = "long") %>% arrange(ID, event_index)
   names(long)[3:4] <- names(long)[4:3]
-  
+
   ##拆解event代码
   long <- long %>% mutate("status_bf" = floor(event/(10**len_ec))) %>%
     mutate("status_af" = event%%(10**len_ec))
-  
+
   data <- long %>% arrange(ID, m, status_bf, status_af, event) %>%        #给每一个events赋一个编号newindex，（新建了event是 和 newindex
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     filter(rowSums(is.na(cbind(event, m, status_bf, status_af)))<4 | new_index==1) %>%
     mutate(events = n())
-  
+
   data[, 'events'] = ifelse(is.na(data$event), NA, data$events)       #自己添加定义好的events
-  
+
   sys.year <- as.integer(format(Sys.Date(), "%Y"))
   sys.mon <- as.integer(format(Sys.Date(), "%m"))
   sys.cmc <- (sys.year-1900)*12+sys.mon
@@ -1982,29 +1982,29 @@ screen1.def.cmc <- function(data,code) {
     mutate(err2 = ifelse(is.na(bMonth),2,NA)) %>%
     mutate(err10 = ifelse(is.na(err1)&(tMonth>sys.cmc),10,NA)) %>%
     mutate(err11 = ifelse(is.na(err2)&(bMonth>sys.cmc|bMonth>tMonth|(tMonth-bMonth)>120*12),11,NA))
-  
+
   data <- data %>% left_join(info, by = "ID")
-  
+
   data <- data %>%
     mutate(err4 = ifelse(is.na(event)&rowSums(is.na(cbind(event, m)))!=2, 4, NA)) %>%
     mutate(err3 = ifelse(is.na(m)&rowSums(is.na(cbind(event, m)))!=2, 3, NA)) %>%
     mutate(err7 = ifelse(!(is.na(event)|event %in% event_code), 7, NA)) %>%
     mutate(err8 = NA) %>%
     mutate(err9 = NA)
-  
+
   data <- data %>% relocate(err1, err2, err3, err4, err7, err8, err9, err10, err11,
                             .before = new_index)
   return(data)
 }
 
 screen2.def.cmc <- function(data,code) {
-  
+
   name <- as.data.frame(code)
   event_code <- na.omit(unique(name$`Event code`))
   status_code <- na.omit(unique(name$`Status code`))
-  
+
   #Keep events
-  
+
   data <- data %>%
     mutate(m = replace(m, which(!(event %in% event_code)), NA)) %>%
     mutate(event = replace(event, which(!(event %in% event_code)), NA)) %>%
@@ -2014,8 +2014,8 @@ screen2.def.cmc <- function(data,code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     filter(rowSums(is.na(cbind(event, m, status_bf, status_af)))<4 | new_index==1)
-  
-  
+
+
   #Check duplicates with the same event time and type
   data_dup <- data %>%
     filter(duplicated(cbind(ID, event, m))) %>%
@@ -2027,27 +2027,27 @@ screen2.def.cmc <- function(data,code) {
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
     arrange(ID, new_index)
-  
-  
+
+
   #Check event time logic
   data_nodup <- data_nodup %>%
     mutate(err5 = ifelse(m>tMonth|m<bMonth, 5, NA))
-  
+
   #Check event type logic(前后两个event可以一样，但是status不能一样，比较前后的转台是否一样)
   data_nodup <- data_nodup %>% group_by(ID) %>%
     mutate(def_check = ifelse(status_af == status_bf, FALSE, TRUE))
-  
+
   data_nodup <- data_nodup %>%
     mutate(err6 = ifelse(def_check==FALSE, 6, NA)) %>%
     select(-def_check)
-  
+
   data <- rbind(data_nodup, data_dup)
   rm(data_nodup)
   rm(data_dup)
   data <- data %>%
     relocate(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12,
              .before = new_index) %>% select(ID:err12)
-  
+
   return(data)
 }
 
@@ -2065,21 +2065,21 @@ clear.mar <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
 
   #convert marital status into 4 marital status if 5,7,8 in data
   if (cohabit==0){
-    data$mar <- ifelse(data$mar==5, 1, 
-                       ifelse(data$mar==7, 3, 
+    data$mar <- ifelse(data$mar==5, 1,
+                       ifelse(data$mar==7, 3,
                               ifelse(data$mar==8, 4, data$mar)))
   }
-  
+
   if (CMC==0) {
-    
+
     #Screen 1: Basic validation
     data <- screen1.ym(data)
-    
+
     if (cohabit==0) {
       name <- paste0(title, ", 4 Marital Status", sep = "")
       #Screen 2: Duplicates and logic detectors
       data <- screen2.mar4.ym(data)
-      
+
       error_data <- data %>%
         filter(rowSums(!is.na(cbind(err1, err2, err3, err4, err5, err6, err7,
                                     err8, err9, err10, err11, err12)), na.rm = TRUE)>0) %>%
@@ -2756,14 +2756,14 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
   param$t2Month <- as.numeric(param$t2Month)
   param$t1Year <- as.numeric(param$t1Year)
   param$t2Year <- as.numeric(param$t2Year)
-  
+
   ##
   name <- as.data.frame(code)
   region_code <- na.omit(unique(name$`Region code`))
   country_code <- na.omit(unique(name$`Country code`))
   state_code <- c(region_code, country_code)
-  
-  
+
+
   if (CMC==0) {
     data <- screen1.mig.ym(data, code)
     name <- paste0(title, ", Migration", sep = "")
@@ -2775,7 +2775,7 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
       select(c(ID:m, err1:err12))
     description <- define.descrip(mode = "mig")
     error <- error.summary(error_data, description)
-    
+
     if (sum(error$err.sum$count)>0){
       if (sum(dob, dobm, intw, eventm, dup) > 0) {
         correction <- correction.ym(data, dob, dobm, intw, eventm, dup)
@@ -2787,14 +2787,14 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     } else {
       print("There is no error.")
     }
-    
+
     data <- ym.to.cmc(data)
     data <- recode.mig(data,code)###重新编码
     data <- data %>% select(region, ID, weight, race, ru, sex, edu, tMonth, bMonth,
                             events, m, event, move.bf, move.af, movebf_ru, moveaf_ru, new_index) %>%
       pivot_wider(names_from = c(new_index), values_from = c(m, event, move.bf, move.af, movebf_ru, moveaf_ru), names_sep = "")
     param$CMC <- 1
-    
+
     #re-arrange column names
     idx_m <- which(names(data)=="m1")
     idx_e <- which(names(data)=="event1")
@@ -2802,8 +2802,8 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     idx_af <- which(names(data)=="move.af1")
     idx_bfru <- which(names(data)=="movebf_ru1")
     idx_afru <- which(names(data)=="moveaf_ru1")
-    
-    
+
+
     max <- max(data$events)                                #length(names(data)[11:ncol(data)])
     temp <- 0
     ##to do
@@ -2811,49 +2811,49 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
       temp = (i-1)*2
       data <- data %>% relocate(names(data)[idx_e+i-1], .after = names(data)[idx_m+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*3
       data <- data %>% relocate(names(data)[idx_bf+i-1], .after = names(data)[idx_m+1+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*4
       data <- data %>% relocate(names(data)[idx_af+i-1], .after = names(data)[idx_m+2+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*5
       data <- data %>% relocate(names(data)[idx_bfru+i-1], .after = names(data)[idx_m+3+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*6
       data <- data %>% relocate(names(data)[idx_afru+i-1], .after = names(data)[idx_m+4+temp])
     }
-    
-    
+
+
     #####
-    
+
     if (is.data.frame(code)){
       sheets <- list("Parameters" = param, "Person Record" = data, "Name" = code)
     } else {
       sheets <- list("Parameters" = param, "Person Record" = data)
     }
-    
+
     if (csv==FALSE){
       write_xlsx(sheets, paste(output.path, paste("/", title, " Migration Clear.xlsx", sep = ""), sep = ""))
     } else {
       write.csv(data, paste(output.path, paste("/", title, " Migration Clear.csv", sep = ""), sep = ""), col.names = T, row.names = F, na = "")
     }
-    
-    
+
+
   } else if (CMC==1) {
-    
+
     #Screen 1: Basic validation
     data <- screen1.mig.cmc(data, code)
     name <- paste0(title, ", Migration", sep = "")
-    
+
     #Screen 2: Duplicates and logic detectors
     data <- screen2.mig.cmc(data, code)
     error_data <- data %>%
@@ -2862,7 +2862,7 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
       select(c(ID:m, err1:err12))
     description <- define.descrip(mode = "mig")
     error <- error.summary(error_data, description)
-    
+
     if (sum(error$err.sum$count)>0){
       if (sum(dob, intw, eventm, dup) > 0) {
         correction <- correction.cmc(data, dob, intw, eventm, dup)
@@ -2874,16 +2874,16 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     } else {
       print("There is no error.")
     }
-    
-    
+
+
     data <- recode.mig(data,code)###
-    
+
     data <- data %>% select(region, ID, weight, race, ru, sex, edu, tMonth, bMonth,
                             events, m, event, move.bf, move.af, movebf_ru, moveaf_ru, new_index) %>%
       pivot_wider(names_from = c(new_index), values_from = c(m, event, move.bf, move.af, movebf_ru, moveaf_ru), names_sep = "")
-    
+
     param$CMC <- 1
-    
+
     #re-arrange column names
     idx_m <- which(names(data)=="m1")
     idx_e <- which(names(data)=="event1")
@@ -2891,8 +2891,8 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     idx_af <- which(names(data)=="move.af1")
     idx_bfru <- which(names(data)=="movebf_ru1")
     idx_afru <- which(names(data)=="moveaf_ru1")
-    
-    
+
+
     max <- max(data$events)
     temp <- 0
     ##to do
@@ -2900,41 +2900,41 @@ clear.mig <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
       temp = (i-1)*2
       data <- data %>% relocate(names(data)[idx_e+i-1], .after = names(data)[idx_m+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*3
       data <- data %>% relocate(names(data)[idx_bf+i-1], .after = names(data)[idx_m+1+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*4
       data <- data %>% relocate(names(data)[idx_af+i-1], .after = names(data)[idx_m+2+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*5
       data <- data %>% relocate(names(data)[idx_bfru+i-1], .after = names(data)[idx_m+3+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*6
       data <- data %>% relocate(names(data)[idx_afru+i-1], .after = names(data)[idx_m+4+temp])
     }
-    
-    
-    
+
+
+
     if (is.data.frame(code)){
       sheets <- list("Parameters" = param, "Person Record" = data, "Name" = code)
     } else {
       sheets <- list("Parameters" = param, "Person Record" = data)
     }
-    
+
     if (csv==FALSE){
       write_xlsx(sheets, paste(output.path, paste("/", title, " Migration Clear.xlsx", sep = ""), sep = ""))
     } else {
       write.csv(data, paste(output.path, paste("/", title, " Migration Clear.csv", sep = ""), sep = ""), col.names = T, row.names = F, na = "")
     }
-    
+
   }
 }
 
@@ -2946,13 +2946,13 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
   param$t2Month <- as.numeric(param$t2Month)
   param$t1Year <- as.numeric(param$t1Year)
   param$t2Year <- as.numeric(param$t2Year)
-  
+
   ##
   name <- as.data.frame(code)
   event_code <- na.omit(unique(name$`Event code`))
   event_name <- na.omit(unique(name$`Event name`))
   status_code <- na.omit(unique(name$`Status code`))
-  
+
   if (CMC==0) {
     #Screen 1: Basic validation
     data <- screen1.def.ym(data, code)
@@ -2965,9 +2965,9 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
       select(c(ID:m, err1:err12))
     description <- define.descrip(mode = "defined")
     error <- error.summary(error_data, description)
-    
+
     #这步报错'names' attribute [2] must be the same length as the vector [1]
-    
+
     if (sum(error$err.sum$count)>0){
       if (sum(dob, dobm, intw, eventm, dup) > 0) {
         correction <- correction.ym(data, dob, dobm, intw, eventm, dup)
@@ -2978,61 +2978,61 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
       } } else {
         print("There is no error.")
       }
-    
+
     data <- ym.to.cmc(data)
-    
+
     #添加events列
     data <- data %>% group_by(ID) %>%
       arrange(ID, m, event) %>%
       mutate(new_index = row_number()) %>%    #这样就计算在同一个ID下，这是第几个
       mutate(events = ifelse(rowSums(is.na(cbind(event, m)))==2&n()==1, 0, n())) %>%
       relocate(events, .after = bMonth)
-    
-    
+
+
     data <- data %>% select(region, ID, weight, race, ru, sex, mar, with_p, with_c, k, edu, tMonth, bMonth,
                             events, m, event, status_bf, status_af, new_index) %>%
       pivot_wider(names_from = c(new_index), values_from = c(m, event, status_bf, status_af), names_sep = "")##todo???pivot的作用
     param$CMC <- 1
-    
+
     #re-arrange column names
     idx_m <- which(names(data)=="m1")
     idx_e <- which(names(data)=="event1")
     idx_bf <- which(names(data)=="status_bf1")
     idx_af <- which(names(data)=="status_af1")
-    
-    
+
+
     max <- max(data$events)                                #length(names(data)[11:ncol(data)])
     temp <- 0
-    
+
     for (i in 1:max) {
       temp = (i-1)*2
       data <- data %>% relocate(names(data)[idx_e+i-1], .after = names(data)[idx_m+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*3
       data <- data %>% relocate(names(data)[idx_bf+i-1], .after = names(data)[idx_m+1+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*4
       data <- data %>% relocate(names(data)[idx_af+i-1], .after = names(data)[idx_m+2+temp])
     }
-    
-    
+
+
     if (is.data.frame(code)){
       sheets <- list("Parameters" = param, "Person Record" = data, "Name" = code)
     } else {
       sheets <- list("Parameters" = param, "Person Record" = data)
     }
-    
+
     if (csv==FALSE){
       write_xlsx(sheets, paste(output.path, paste("/", title, " ", event_name, " Clear.xlsx", sep = ""), sep = ""))
     } else {
       write.csv(data, paste(output.path, paste("/", title, " ", event_name, " Clear.csv", sep = ""), sep = ""), col.names = T, row.names = F, na = "")
     }
-    
-    
+
+
   } else if (CMC==1) {
     #Screen 1: Basic validation
     data <- screen1.def.cmc(data, code)
@@ -3045,10 +3045,10 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     #   select(c(ID:m, err1:err12))
     #description <- define.descrip(mode = "defined")
     #error <- error.summary(error_data, description)
-    
+
     correction <- correction.cmc(data, dob, intw, eventm, dup)
     data <- correction$data
-    
+
     # if (sum(error$err.sum$count)>0){
     #   if (sum(dob, intw, eventm, dup) > 0) {
     #     correction <- correction.cmc(data, dob, intw, eventm, dup)
@@ -3060,58 +3060,58 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     # } else {
     #   print("There is no error.")
     # }
-    
+
     #添加events列
     data <- data %>% group_by(ID) %>%
       arrange(ID, m, event) %>%
       mutate(new_index = row_number()) %>%    #这样就计算在同一个ID下，这是第几个
       mutate(events = ifelse(rowSums(is.na(cbind(event, m)))==2&n()==1, 0, n())) %>%
       relocate(events, .after = bMonth)
-    
-    
+
+
     data <- data %>% select(region, ID, weight, race, ru, sex, mar, with_p, with_c, k, edu, tMonth, bMonth,
                             events, m, event, status_bf, status_af, new_index) %>%
       pivot_wider(names_from = c(new_index), values_from = c(m, event, status_bf, status_af), names_sep = "")##todo???pivot的作用
-    
+
     #re-arrange column names
     idx_m <- which(names(data)=="m1")
     idx_e <- which(names(data)=="event1")
     idx_bf <- which(names(data)=="status_bf1")
     idx_af <- which(names(data)=="status_af1")
-    
-    
+
+
     max <- max(data$events)                                #length(names(data)[11:ncol(data)])
     temp <- 0
-    
-    
+
+
     for (i in 1:max) {
       temp = (i-1)*2
       data <- data %>% relocate(names(data)[idx_e+i-1], .after = names(data)[idx_m+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*3
       data <- data %>% relocate(names(data)[idx_bf+i-1], .after = names(data)[idx_m+1+temp])
     }
-    
+
     for (i in 1:max) {
       temp = (i-1)*4
       data <- data %>% relocate(names(data)[idx_af+i-1], .after = names(data)[idx_m+2+temp])
     }
-    
-    
+
+
     if (is.data.frame(code)){
       sheets <- list("Parameters" = param, "Person Record" = data, "Name" = code)
     } else {
       sheets <- list("Parameters" = param, "Person Record" = data)
     }
-    
+
     if (csv==FALSE){
       write_xlsx(sheets, paste(output.path, paste("/", title, " ", event_name, " Clear.xlsx", sep = ""), sep = ""))
     } else {
       write.csv(data, paste(output.path, paste("/", title, " ", event_name, " Clear.csv", sep = ""), sep = ""), col.names = T, row.names = F, na = "")
     }
-    
+
   }
 }
 
@@ -3145,7 +3145,6 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
 #' @param eventm Either \code{TRUE} or \code{FALSE}. If \code{TRUE}, person records with complete event year but missing or invalid event month are imputed with a random month as event month. If \code{FALSE}, no modification is made. By default, \code{eventm = FALSE}.
 #' @param dup Either \code{TRUE} or \code{FALSE}. If \code{TRUE}, duplicated events are deleted. If \code{FALSE}, no modification is made. By default, \code{dup = FALSE}.
 #'
-#' @return
 #' @export
 #'
 clear.data <- function(file = NA, csv = FALSE, para = NA, dobm = FALSE,

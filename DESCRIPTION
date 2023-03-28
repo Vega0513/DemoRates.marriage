@@ -1,11 +1,31 @@
 Package: DemoRates.marriage
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Marriage and Cohabitation Rates Estimation
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Zhenglian Wang [aut, cre], 
+    Qiushi Feng [aut], 
+    Siyao Lu [aut]
+Maintainer: Zhenglian Wang <wangzhenglian8886@163.com>
+Description: DemoRates.marriage is a R package, which aims to help users easily use survey or census data to estimate demographic transition rates and frequency of marriage.
+    The estimation could be classified by demographic characteristics such as age, sex, marital status, education, rural/urban residence, race, and province or state or region.
+License: CC BY 4.0
+Depends: R (>= 4.2.0)
+Imports: 
+    dplyr,
+    readxl,
+    survival,
+    mfp,
+    writexl,
+    openxlsx,
+    magrittr,
+    ggplot2,
+    stats,
+    tidyr,
+    srvyr,
+    parallel,
+    doParallel,
+    roxygen2,
+    INLA
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.2.3
