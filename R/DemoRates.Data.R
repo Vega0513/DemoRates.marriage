@@ -537,18 +537,16 @@ screen2.mar4.ym <- function(data) {
     mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
 
-  attach(data_nodup)
   data_nodup$same.o <-
-    dplyr::case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
-              same.t==1 & event %in% c(1,2) & lead %in% c(3,4) ~ 2,
-              same.t==1 & event %in% c(1,2) & last %in% c(1,2) ~ 2,
-              same.t==1 & event %in% c(1,2) & lead %in% c(1,2) ~ 1,
-              same.t==1 & event %in% c(3,4) & last %in% c(1,2) ~ 1,
-              same.t==1 & event %in% c(3,4) & lead %in% c(1,2) ~ 2,
-              same.t==1 & event %in% c(3,4) & last %in% c(3,4) ~ 2,
-              same.t==1 & event %in% c(3,4) & lead %in% c(3,4) ~ 1,
-              TRUE ~ NA)
-  detach(data_nodup)
+    dplyr::case_when(data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$last %in% c(3,4) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$lead %in% c(3,4) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$last %in% c(1,2) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$lead %in% c(1,2) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$last %in% c(1,2) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$lead %in% c(1,2) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$last %in% c(3,4) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$lead %in% c(3,4) ~ 1,
+                     TRUE ~ NA)
 
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, y, m, same.o) %>%
     mutate(new_index = row_number()) %>%
@@ -629,18 +627,16 @@ screen2.mar4.cmc <- function(data) {
     mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
 
-  attach(data_nodup)
   data_nodup$same.o <-
-    dplyr::case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
-              same.t==1 & event %in% c(1,2) & lead %in% c(3,4) ~ 2,
-              same.t==1 & event %in% c(1,2) & last %in% c(1,2) ~ 2,
-              same.t==1 & event %in% c(1,2) & lead %in% c(1,2) ~ 1,
-              same.t==1 & event %in% c(3,4) & last %in% c(1,2) ~ 1,
-              same.t==1 & event %in% c(3,4) & lead %in% c(1,2) ~ 2,
-              same.t==1 & event %in% c(3,4) & last %in% c(3,4) ~ 2,
-              same.t==1 & event %in% c(3,4) & lead %in% c(3,4) ~ 1,
-              TRUE ~ NA)
-  detach(data_nodup)
+    dplyr::case_when(data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$last %in% c(3,4) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$lead %in% c(3,4) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$last %in% c(1,2) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2) & data_nodup$lead %in% c(1,2) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$last %in% c(1,2) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$lead %in% c(1,2) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$last %in% c(3,4) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4) & data_nodup$lead %in% c(3,4) ~ 1,
+                     TRUE ~ NA)
 
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, m, same.o) %>%
     mutate(new_index = row_number()) %>%
@@ -697,13 +693,15 @@ recode.mar4 <- function(data) {
     arrange(ID, m) %>%
     mutate(lag.event = lag(event))
 
-  attach(data)
-  data$type4 <- dplyr::case_when(event==1 ~ 1, event==2&lag.event==3 ~ 3,
-                          event==3 ~ 17, event==4 ~ 2, event==2&lag.event==4 ~ 4,
-                          event==2&is.na(lag.event)&(m-bMonth)/12<65 ~ 4,
-                          event==2&is.na(lag.event)&(m-bMonth)/12>=65 ~ 3,
-                          TRUE ~ NA_real_)
-  detach(data)
+  data$type4 <- dplyr::case_when(data$event==1 ~ 1,
+                                 data$event==2 & data$lag.event==3 ~ 3,
+                                 data$event==3 ~ 17,
+                                 data$event==4 ~ 2,
+                                 data$event==2 & data$lag.event==4 ~ 4,
+                                 data$event==2 & is.na(data$lag.event) & (data$m-data$bMonth)/12<65 ~ 4,
+                                 data$event==2 & is.na(data$lag.event) & (data$m-data$bMonth)/12>=65 ~ 3,
+                                 TRUE ~ NA_real_)
+
   data <- data %>% select(-lag.event) %>%
     mutate(new_index = row_number()) %>%
     mutate(events = ifelse(rowSums(is.na(cbind(event, m)))==2&n()==1, 0, n())) %>%
@@ -744,18 +742,16 @@ screen2.mar7.ym <- function(data) {
     mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
 
-  attach(data_nodup)
   data_nodup$same.o <-
-    dplyr::case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
-              same.t==1 & event %in% c(1,2,5) & lead %in% c(3,4,6) ~ 2,
-              same.t==1 & event %in% c(1,2,5) & last %in% c(1,2,5) ~ 2,
-              same.t==1 & event %in% c(1,2,5) & lead %in% c(1,2,5) ~ 1,
-              same.t==1 & event %in% c(3,4,6) & last %in% c(1,2,5) ~ 1,
-              same.t==1 & event %in% c(3,4,6) & lead %in% c(1,2,5) ~ 2,
-              same.t==1 & event %in% c(3,4,6) & last %in% c(3,4,6) ~ 2,
-              same.t==1 & event %in% c(3,4,6) & lead %in% c(3,4,6) ~ 1,
-              TRUE ~ NA)
-  detach(data_nodup)
+    dplyr::case_when(data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$last %in% c(3,4,6) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$lead %in% c(3,4,6) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$last %in% c(1,2,5) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$lead %in% c(1,2,5) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$last %in% c(1,2,5) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$lead %in% c(1,2,5) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$last %in% c(3,4,6) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$lead %in% c(3,4,6) ~ 1,
+                     TRUE ~ NA)
 
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, y, m, same.o) %>%
     mutate(new_index = row_number()) %>%
@@ -850,18 +846,16 @@ screen2.mar7.cmc <- function(data) {
     mutate(lead = ifelse(same.t==1&is.na(lead(same.t)), lead(event),
                          ifelse(same.t==1&lead(same.t)==1, lead(lead(event)), NA)))
 
-  attach(data_nodup)
   data_nodup$same.o <-
-    dplyr::case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
-              same.t==1 & event %in% c(1,2,5) & lead %in% c(3,4,6) ~ 2,
-              same.t==1 & event %in% c(1,2,5) & last %in% c(1,2,5) ~ 2,
-              same.t==1 & event %in% c(1,2,5) & lead %in% c(1,2,5) ~ 1,
-              same.t==1 & event %in% c(3,4,6) & last %in% c(1,2,5) ~ 1,
-              same.t==1 & event %in% c(3,4,6) & lead %in% c(1,2,5) ~ 2,
-              same.t==1 & event %in% c(3,4,6) & last %in% c(3,4,6) ~ 2,
-              same.t==1 & event %in% c(3,4,6) & lead %in% c(3,4,6) ~ 1,
-              TRUE ~ NA)
-  detach(data_nodup)
+    dplyr::case_when(data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$last %in% c(3,4,6) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$lead %in% c(3,4,6) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$last %in% c(1,2,5) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(1,2,5) & data_nodup$lead %in% c(1,2,5) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$last %in% c(1,2,5) ~ 1,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$lead %in% c(1,2,5) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$last %in% c(3,4,6) ~ 2,
+                     data_nodup$same.t==1 & data_nodup$event %in% c(3,4,6) & data_nodup$lead %in% c(3,4,6) ~ 1,
+                     TRUE ~ NA)
 
   data_nodup <- data_nodup %>% group_by(ID) %>% arrange(ID, m, same.o) %>%
     mutate(new_index = row_number()) %>%
@@ -937,42 +931,40 @@ recode.mar7 <- function(data) {
     arrange(ID, m) %>%
     mutate(lag.event = lag(event))
 
-  attach(data)
-  data$type7 <- dplyr::case_when(event==3 ~ 17,                                             #From Married to Widowed & Not Cohabiting
-                          event==4 ~ 2,                                              #From Married to Divorced & Not Cohabiting
-                          is.na(lag.mar)&is.na(lag.event)&event==1 ~ 1,              #From Never Married & Not Cohabiting to Married
-                          is.na(lag.mar)&lag.event==6&event==1 ~ 1,                  #From Never Married & Not Cohabiting to Married
-                          is.na(lag.mar)&lag.event==5&event==1 ~ 11,                 #From Never Marred & Cohabiting to Married
-                          is.na(lag.mar)&is.na(lag.event)&(m-bMonth)/12<65&event==2 ~ 4,  #From Divorced & Not Cohabiting to Married
-                          is.na(lag.mar)&is.na(lag.event)&(m-bMonth)/12>=65&event==2 ~ 3, #From Widowed & Not Cohabiting to Married
-                          is.na(lag.mar)&lag.event==5&(m-bMonth)/12<65&event==2 ~ 13,  #From Divorced & Cohabiting to Married
-                          is.na(lag.mar)&lag.event==5&(m-bMonth)/12>=65&event==2 ~ 12, #From Widowed & Cohabiting to Married
-                          is.na(lag.mar)&lag.event==6&(m-bMonth)/12<65&event==2 ~ 4,   #From Divorced & Not Cohabiting to Married
-                          is.na(lag.mar)&lag.event==6&(m-bMonth)/12>=65&event==2 ~ 3,  #From Widowed & Not Cohabiting to Married
-                          is.na(lag.mar)&next.mar==1&event==5 ~ 5,                   #From Never Married & Not Cohabiting to Never Married & Cohabiting
-                          is.na(lag.mar)&is.na(next.mar)&mar==1&event==5 ~ 5,        #From Never Married & Not Cohabiting to Never Married & Cohabiting
-                          is.na(lag.mar)&is.na(next.mar)&mar==3&event==5 ~ 6,        #From Widowed & Not Cohabiting to Widowed & Cohabiting
-                          is.na(lag.mar)&is.na(next.mar)&mar==4&event==5 ~ 7,        #From Divorced & Not Cohabiting to Divorced & Cohabiting
-                          is.na(lag.mar)&next.mar==2&next.age<65&event==5 ~ 7,       #From Divorced & Not Cohabiting to Divorced & Cohabiting
-                          is.na(lag.mar)&next.mar==2&next.age>=65&event==5 ~ 6,      #From Widowed & Not Cohabiting to  Widowed & Cohabiting
-                          is.na(lag.mar)&next.mar==1&event==6 ~ 8,                   #From Never Married & Cohabiting to Never Marred & Not cohabiting
-                          is.na(lag.mar)&is.na(next.mar)&mar==1&event==6 ~ 8,        #From Never Married & Cohabiting to Never Marred & Not cohabiting
-                          is.na(lag.mar)&is.na(next.mar)&mar==3&event==6 ~ 9,        #From Widowed & Cohabiting to Widowed & Not cohabiting
-                          is.na(lag.mar)&is.na(next.mar)&mar==4&event==6 ~ 10,       #From Divorced & Cohabiting to Divorced & Not cohabiting
-                          is.na(lag.mar)&next.mar==2&next.age<65&event==6 ~ 10,      #From Divorced & Cohabiting to Divorced & Not cohabiting
-                          is.na(lag.mar)&next.mar==2&next.age>=65&event==6 ~ 9,      #From Widowed & Cohabiting to Widowed & Not cohabiting
-                          lag.event==5&lag.mar==3&event==2 ~ 12,                     #From Widowed & Cohabiting to Married
-                          lag.event==6&lag.mar==3&event==2 ~ 3,                      #From Widowed & Not Cohabiting to Married
-                          lag.event==3&event==2 ~ 3,                                 #From Widowed & Not Cohabiting to Married
-                          lag.event==5&lag.mar==4&event==2 ~ 13,                     #From Divorced & Cohabiting to Married
-                          lag.event==6&lag.mar==4&event==2 ~ 4,                      #From Divorced & Not Cohabiting to Married
-                          lag.event==4&event==2 ~ 4,                                 #From Divorced & Not Cohabiting to Married
-                          lag.mar==3&event==5 ~ 6,                                   #From Widowed & Not Cohabiting to  Widowed & Cohabiting
-                          lag.mar==3&event==6 ~ 9,                                   #From Widowed & Cohabiting to Widowed & Not cohabiting
-                          lag.mar==4&event==5 ~ 7,                                   #From Divorced & Not Cohabiting to Divorced & Cohabiting
-                          lag.mar==4&event==6 ~ 10,                                  #From Divorced & Cohabiting to Divorced & Not cohabiting
-                          TRUE ~ NA_real_)
-  detach(data)
+  data$type7 <- dplyr::case_when(data$event==3 ~ 17,                                             #From Married to Widowed & Not Cohabiting
+                                 data$event==4 ~ 2,                                              #From Married to Divorced & Not Cohabiting
+                                 is.na(data$lag.mar) & is.na(data$lag.event) & data$event==1 ~ 1,              #From Never Married & Not Cohabiting to Married
+                                 is.na(data$lag.mar) & data$lag.event==6 & data$event==1 ~ 1,                  #From Never Married & Not Cohabiting to Married
+                                 is.na(data$lag.mar) & data$lag.event==5 & data$event==1 ~ 11,                 #From Never Marred & Cohabiting to Married
+                                 is.na(data$lag.mar) & is.na(data$lag.event) & (data$m-data$bMonth)/12<65 & data$event==2 ~ 4,  #From Divorced & Not Cohabiting to Married
+                                 is.na(data$lag.mar) & is.na(data$lag.event) & (data$m-data$bMonth)/12>=65 & data$event==2 ~ 3, #From Widowed & Not Cohabiting to Married
+                                 is.na(data$lag.mar) & data$lag.event==5&(data$m-data$bMonth)/12<65 & data$event==2 ~ 13,  #From Divorced & Cohabiting to Married
+                                 is.na(data$lag.mar) & data$lag.event==5&(data$m-data$bMonth)/12>=65 & data$event==2 ~ 12, #From Widowed & Cohabiting to Married
+                                 is.na(data$lag.mar) & data$lag.event==6&(data$m-data$bMonth)/12<65 & data$event==2 ~ 4,   #From Divorced & Not Cohabiting to Married
+                                 is.na(data$lag.mar) & data$lag.event==6&(data$m-data$bMonth)/12>=65 & data$event==2 ~ 3,  #From Widowed & Not Cohabiting to Married
+                                 is.na(data$lag.mar) & data$next.mar==1 & data$event==5 ~ 5,                   #From Never Married & Not Cohabiting to Never Married & Cohabiting
+                                 is.na(data$lag.mar) & is.na(data$next.mar) & data$mar==1 & data$event==5 ~ 5,        #From Never Married & Not Cohabiting to Never Married & Cohabiting
+                                 is.na(data$lag.mar) & is.na(data$next.mar) & data$mar==3 & data$event==5 ~ 6,        #From Widowed & Not Cohabiting to Widowed & Cohabiting
+                                 is.na(data$lag.mar) & is.na(data$next.mar) & data$mar==4 & data$event==5 ~ 7,        #From Divorced & Not Cohabiting to Divorced & Cohabiting
+                                 is.na(data$lag.mar) & data$next.mar==2 & data$next.age<65 & data$event==5 ~ 7,       #From Divorced & Not Cohabiting to Divorced & Cohabiting
+                                 is.na(data$lag.mar) & data$next.mar==2 & data$next.age>=65 & data$event==5 ~ 6,      #From Widowed & Not Cohabiting to  Widowed & Cohabiting
+                                 is.na(data$lag.mar) & data$next.mar==1 & data$event==6 ~ 8,                   #From Never Married & Cohabiting to Never Marred & Not cohabiting
+                                 is.na(data$lag.mar) & is.na(data$next.mar) & data$mar==1 & data$event==6 ~ 8,        #From Never Married & Cohabiting to Never Marred & Not cohabiting
+                                 is.na(data$lag.mar) & is.na(data$next.mar) & data$mar==3 & data$event==6 ~ 9,        #From Widowed & Cohabiting to Widowed & Not cohabiting
+                                 is.na(data$lag.mar) & is.na(data$next.mar) & data$mar==4 & data$event==6 ~ 10,       #From Divorced & Cohabiting to Divorced & Not cohabiting
+                                 is.na(data$lag.mar) & data$next.mar==2 & data$next.age<65 & data$event==6 ~ 10,      #From Divorced & Cohabiting to Divorced & Not cohabiting
+                                 is.na(data$lag.mar) & data$next.mar==2 & data$next.age>=65 & data$event==6 ~ 9,      #From Widowed & Cohabiting to Widowed & Not cohabiting
+                                 data$lag.event==5 & data$lag.mar==3 & data$event==2 ~ 12,                     #From Widowed & Cohabiting to Married
+                                 data$lag.event==6 & data$lag.mar==3 & data$event==2 ~ 3,                      #From Widowed & Not Cohabiting to Married
+                                 data$lag.event==3 & data$event==2 ~ 3,                                 #From Widowed & Not Cohabiting to Married
+                                 data$lag.event==5 & data$lag.mar==4 & data$event==2 ~ 13,                     #From Divorced & Cohabiting to Married
+                                 data$lag.event==6 & data$lag.mar==4 & data$event==2 ~ 4,                      #From Divorced & Not Cohabiting to Married
+                                 data$lag.event==4 & data$event==2 ~ 4,                                 #From Divorced & Not Cohabiting to Married
+                                 data$lag.mar==3 & data$event==5 ~ 6,                                   #From Widowed & Not Cohabiting to  Widowed & Cohabiting
+                                 data$lag.mar==3 & data$event==6 ~ 9,                                   #From Widowed & Cohabiting to Widowed & Not cohabiting
+                                 data$lag.mar==4 & data$event==5 ~ 7,                                   #From Divorced & Not Cohabiting to Divorced & Cohabiting
+                                 data$lag.mar==4 & data$event==6 ~ 10,                                  #From Divorced & Cohabiting to Divorced & Not cohabiting
+                                 TRUE ~ NA_real_)
 
   data <- data %>% mutate(new_index = row_number()) %>%
     mutate(events = ifelse(rowSums(is.na(cbind(event, m)))==2&n()==1, 0, n())) %>%

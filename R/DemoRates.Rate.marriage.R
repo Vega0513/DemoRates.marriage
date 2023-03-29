@@ -3763,7 +3763,7 @@ mar7.t2 <- function(data, t2Month){
   mar2 <- data %>%
     mutate(event.cp = event) %>%
     mutate(event = replace(event, which(m>t2Month), NA)) %>%
-    mutate(m = replace(m, which(m>t2Month), NA)) %>%
+    mutate(m = replace(m, which(m>t2Month|is.na(event)), NA)) %>%
     filter(rowSums(is.na(cbind(event, m)))<2 | new_index==1)
 
   mar2 <- mar2 %>% group_by(ID) %>%
