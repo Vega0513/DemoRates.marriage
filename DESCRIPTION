@@ -24,7 +24,6 @@ Imports:
     srvyr,
     parallel,
     doParallel,
-    roxygen2,
     INLA
 Encoding: UTF-8
 LazyData: true
