@@ -3743,17 +3743,14 @@ mar4.t2 <- function(data, t2Month){
     mutate(n = n()) %>%
     mutate(row = row_number())
 
-  attach(mar2)
-  mar2$mar2 <- dplyr::case_when(events==0 ~ mar,
-                         events>=n&row==n&event %in% c(1, 3:4) ~ 2,
-                         events>=n&row==n&event==2 ~ 4,
-                         events>=n&row==n&event==17 ~ 3,
-                         events>=n&row==n&is.na(event)&event.cp==1 ~ 1,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(2, 17) ~ 2,
-                         events>=n&row==n&is.na(event)&event.cp==3 ~ 3,
-                         events>=n&row==n&is.na(event)&event.cp==4 ~ 4)
-
-  detach(mar2)
+  mar2$mar2 <- dplyr::case_when(mar2$events==0 ~ mar2$mar,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(1, 3:4) ~ 2,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==2 ~ 4,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==17 ~ 3,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==1 ~ 1,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(2, 17) ~ 2,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==3 ~ 3,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==4 ~ 4)
 
   mar2 <- mar2 %>% fill(mar2, .direction = "up") %>% select(-n, -row)
   mar2$mar2 <- ifelse(is.na(mar2$mar2), mar2$mar, mar2$mar2)
@@ -3774,24 +3771,21 @@ mar7.t2 <- function(data, t2Month){
     mutate(n = n()) %>%
     mutate(row = row_number())
 
-  attach(mar2)
-  mar2$mar2 <- dplyr::case_when(events==0 ~ mar,
-                         events>=n & row==n & event %in% c(1, 3:4, 11:13) ~ 2,
-                         events>=n&row==n&event %in% c(2, 10) ~ 4,
-                         events>=n&row==n&event %in% c(9, 17) ~ 3,
-                         events>=n&row==n&event==5 ~ 5,
-                         events>=n&row==n&event==6 ~ 7,
-                         events>=n&row==n&event==7 ~ 8,
-                         events>=n&row==n&event==8 ~ 1,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(1, 5) ~ 1,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(2, 17) ~ 2,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(3, 6) ~ 3,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(4, 7) ~ 4,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(8, 11) ~ 5,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(9, 12) ~ 7,
-                         events>=n&row==n&is.na(event)&event.cp %in% c(10, 13) ~ 8)
-
-  detach(mar2)
+  mar2$mar2 <- dplyr::case_when(mar2$events==0 ~ mar2$mar,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(1, 3:4, 11:13) ~ 2,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(2, 10) ~ 4,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(9, 17) ~ 3,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==5 ~ 5,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==6 ~ 7,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==7 ~ 8,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==8 ~ 1,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(1, 5) ~ 1,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(2, 17) ~ 2,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(3, 6) ~ 3,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(4, 7) ~ 4,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(8, 11) ~ 5,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(9, 12) ~ 7,
+                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(10, 13) ~ 8)
 
   mar2 <- mar2 %>% fill(mar2, .direction = "up") %>% select(-n, -row)
 
