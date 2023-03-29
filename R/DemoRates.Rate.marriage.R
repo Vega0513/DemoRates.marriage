@@ -3744,7 +3744,7 @@ mar4.t2 <- function(data, t2Month){
     mutate(row = row_number())
 
   attach(mar2)
-  mar2$mar2 <- case_when(events==0 ~ mar,
+  mar2$mar2 <- dplyr::case_when(events==0 ~ mar,
                          events>=n&row==n&event %in% c(1, 3:4) ~ 2,
                          events>=n&row==n&event==2 ~ 4,
                          events>=n&row==n&event==17 ~ 3,
@@ -3775,8 +3775,8 @@ mar7.t2 <- function(data, t2Month){
     mutate(row = row_number())
 
   attach(mar2)
-  mar2$mar2 <- case_when(events==0 ~ mar,
-                         events>=n&row==n&event %in% c(1, 3:4, 11:13) ~ 2,
+  mar2$mar2 <- dplyr::case_when(events==0 ~ mar,
+                         events>=n & row==n & event %in% c(1, 3:4, 11:13) ~ 2,
                          events>=n&row==n&event %in% c(2, 10) ~ 4,
                          events>=n&row==n&event %in% c(9, 17) ~ 3,
                          events>=n&row==n&event==5 ~ 5,

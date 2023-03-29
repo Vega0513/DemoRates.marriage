@@ -539,7 +539,7 @@ screen2.mar4.ym <- function(data) {
 
   attach(data_nodup)
   data_nodup$same.o <-
-    case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
+    dplyr::case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
               same.t==1 & event %in% c(1,2) & lead %in% c(3,4) ~ 2,
               same.t==1 & event %in% c(1,2) & last %in% c(1,2) ~ 2,
               same.t==1 & event %in% c(1,2) & lead %in% c(1,2) ~ 1,
@@ -631,7 +631,7 @@ screen2.mar4.cmc <- function(data) {
 
   attach(data_nodup)
   data_nodup$same.o <-
-    case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
+    dplyr::case_when(same.t==1 & event %in% c(1,2) & last %in% c(3,4) ~ 1,
               same.t==1 & event %in% c(1,2) & lead %in% c(3,4) ~ 2,
               same.t==1 & event %in% c(1,2) & last %in% c(1,2) ~ 2,
               same.t==1 & event %in% c(1,2) & lead %in% c(1,2) ~ 1,
@@ -698,7 +698,7 @@ recode.mar4 <- function(data) {
     mutate(lag.event = lag(event))
 
   attach(data)
-  data$type4 <- case_when(event==1 ~ 1, event==2&lag.event==3 ~ 3,
+  data$type4 <- dplyr::case_when(event==1 ~ 1, event==2&lag.event==3 ~ 3,
                           event==3 ~ 17, event==4 ~ 2, event==2&lag.event==4 ~ 4,
                           event==2&is.na(lag.event)&(m-bMonth)/12<65 ~ 4,
                           event==2&is.na(lag.event)&(m-bMonth)/12>=65 ~ 3,
@@ -746,7 +746,7 @@ screen2.mar7.ym <- function(data) {
 
   attach(data_nodup)
   data_nodup$same.o <-
-    case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
+    dplyr::case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
               same.t==1 & event %in% c(1,2,5) & lead %in% c(3,4,6) ~ 2,
               same.t==1 & event %in% c(1,2,5) & last %in% c(1,2,5) ~ 2,
               same.t==1 & event %in% c(1,2,5) & lead %in% c(1,2,5) ~ 1,
@@ -852,7 +852,7 @@ screen2.mar7.cmc <- function(data) {
 
   attach(data_nodup)
   data_nodup$same.o <-
-    case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
+    dplyr::case_when(same.t==1 & event %in% c(1,2,5) & last %in% c(3,4,6) ~ 1,
               same.t==1 & event %in% c(1,2,5) & lead %in% c(3,4,6) ~ 2,
               same.t==1 & event %in% c(1,2,5) & last %in% c(1,2,5) ~ 2,
               same.t==1 & event %in% c(1,2,5) & lead %in% c(1,2,5) ~ 1,
@@ -938,7 +938,7 @@ recode.mar7 <- function(data) {
     mutate(lag.event = lag(event))
 
   attach(data)
-  data$type7 <- case_when(event==3 ~ 17,                                             #From Married to Widowed & Not Cohabiting
+  data$type7 <- dplyr::case_when(event==3 ~ 17,                                             #From Married to Widowed & Not Cohabiting
                           event==4 ~ 2,                                              #From Married to Divorced & Not Cohabiting
                           is.na(lag.mar)&is.na(lag.event)&event==1 ~ 1,              #From Never Married & Not Cohabiting to Married
                           is.na(lag.mar)&lag.event==6&event==1 ~ 1,                  #From Never Married & Not Cohabiting to Married
@@ -1128,7 +1128,7 @@ recode.birth <- function(data, nr2, fertM, cohabit){
       fill(next.mar, next.age, .direction = "up")
     data <- data %>% group_by(ID) %>%
       arrange(ID, m) %>%
-      mutate(mar.bf = case_when(lag.mar==103 ~ 3,
+      mutate(mar.bf = dplyr::case_when(lag.mar==103 ~ 3,
                                 lag.mar==104 ~ 4,
                                 lag.mar==101&new_event<100 ~ 2,
                                 lag.mar==102&new_event<100 ~ 2,
@@ -1187,7 +1187,7 @@ recode.birth <- function(data, nr2, fertM, cohabit){
 
     data <- data %>% group_by(ID) %>%
       arrange(ID, m) %>%
-      mutate(marbf4 = case_when(lag.mar==103 ~ 003,
+      mutate(marbf4 = dplyr::case_when(lag.mar==103 ~ 003,
                                 lag.mar==104 ~ 004,
                                 lag.mar==101&new_event<100 ~ 002,
                                 lag.mar==102&new_event<100 ~ 002,
@@ -1207,7 +1207,7 @@ recode.birth <- function(data, nr2, fertM, cohabit){
 
     data <- data %>% group_by(ID) %>%
       arrange(ID, m) %>%
-      mutate(mar.bf = case_when(marbf4 == 001 ~ 1,
+      mutate(mar.bf = dplyr::case_when(marbf4 == 001 ~ 1,
                                 marbf4 == 002 ~ 2,
                                 marbf4 == 003 ~ 3,
                                 marbf4 == 004 ~ 4,
@@ -1490,7 +1490,7 @@ screen2.leave.cmc <- function(data) {
 recode.lh <- function(data) {
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
-    mutate(lh = case_when(event==7 ~ 7,
+    mutate(lh = dplyr::case_when(event==7 ~ 7,
                           event==8 ~ 8,
                           TRUE ~ NA_real_)) %>%
     mutate(new_index = row_number()) %>%    #这样就计算在同一个ID下，这是第几个
@@ -1777,7 +1777,7 @@ recode.mig <- function(data, code) {
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
     mutate(move.bf = event) %>%
-    mutate(move.af = case_when(!(is.na(next.state)) ~ next.state,
+    mutate(move.af = dplyr::case_when(!(is.na(next.state)) ~ next.state,
                                is.na(next.state) & !(is.na(move.bf)) ~ region,
                                TRUE ~ NA_real_))%>%
     relocate(move.bf, .after = event) %>%
@@ -1797,7 +1797,7 @@ recode.mig <- function(data, code) {
 
   data <- data %>% group_by(ID) %>%
     arrange(ID, m) %>%
-    mutate(moveaf_ru = case_when(!(is.na(next.bfru)) ~ next.bfru,
+    mutate(moveaf_ru = dplyr::case_when(!(is.na(next.bfru)) ~ next.bfru,
                                  is.na(next.bfru) & !(is.na(movebf_ru )) ~ ru,
                                  TRUE ~ NA_real_))%>%
     relocate(moveaf_ru, .after = movebf_ru) %>%
