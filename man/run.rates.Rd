@@ -28,7 +28,7 @@ If \code{TRUE}, the graph of the comparison between the direct estimations and t
 \item{sex}{Only available for covariate method. Either \code{TRUE} or \code{FALSE}.
 If \code{TRUE}, gender is considered as a factor in estimation. By default, \code{plot = TRUE}.}
 
-\item{method}{Only available for subset method. Choose the estimation model. Either \code{NA}, "Poisson", "Bayes.norm", or "Bayes.log".
+\item{method}{Only available for subset method. Choose the estimation model. Either \code{NA}, "Poisson".
 If \code{NA}, only direct calculated results will be output. By default, \code{method = NA}.}
 
 \item{mfp}{Choose whether to use mfp package or DemoRates-defined function selection process to run Poisson estimation.

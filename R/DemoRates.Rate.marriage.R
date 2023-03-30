@@ -1446,39 +1446,39 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
 
       }
 
-      if (method=="Bayes.norm") {
-
-        # First Marriage
-        mrg1.male.oe.est <- merge(agelist, est.bnorm(mrg1.male.oe), all.x=TRUE)
-        mrg1.female.oe.est <- merge(agelist, est.bnorm(mrg1.female.oe), all.x=TRUE)
-        # Divorced
-        divorced.male.oe.est <- merge(agelist, est.bnorm(divorced.male.oe), all.x=TRUE)
-        divorced.female.oe.est <- merge(agelist, est.bnorm(divorced.female.oe), all.x=TRUE)
-        # Remarriage of Widowed
-        rw.male.oe.est <- merge(agelist, est.bnorm(rw.male.oe), all.x=TRUE)
-        rw.female.oe.est <- merge(agelist, est.bnorm(rw.female.oe), all.x=TRUE)
-        # Remarriage of Divorced
-        rd.male.oe.est <- merge(agelist, est.bnorm(rd.male.oe), all.x=TRUE)
-        rd.female.oe.est <- merge(agelist, est.bnorm(rd.female.oe), all.x=TRUE)
-
-      }
-
-      if (method=="Bayes.log") {
-
-        # First Marriage
-        mrg1.male.oe.est <- merge(agelist, est.blog(mrg1.male.oe), all.x=TRUE)
-        mrg1.female.oe.est <- merge(agelist, est.blog(mrg1.female.oe), all.x=TRUE)
-        # Divorced
-        divorced.male.oe.est <- merge(agelist, est.blog(divorced.male.oe), all.x=TRUE)
-        divorced.female.oe.est <- merge(agelist, est.blog(divorced.female.oe), all.x=TRUE)
-        # Remarriage of Widowed
-        rw.male.oe.est <- merge(agelist, est.blog(rw.male.oe), all.x=TRUE)
-        rw.female.oe.est <- merge(agelist, est.blog(rw.female.oe), all.x=TRUE)
-        # Remarriage of Divorced
-        rd.male.oe.est <- merge(agelist, est.blog(rd.male.oe), all.x=TRUE)
-        rd.female.oe.est <- merge(agelist, est.blog(rd.female.oe), all.x=TRUE)
-
-      }
+      # if (method=="Bayes.norm") {
+      #
+      #   # First Marriage
+      #   mrg1.male.oe.est <- merge(agelist, est.bnorm(mrg1.male.oe), all.x=TRUE)
+      #   mrg1.female.oe.est <- merge(agelist, est.bnorm(mrg1.female.oe), all.x=TRUE)
+      #   # Divorced
+      #   divorced.male.oe.est <- merge(agelist, est.bnorm(divorced.male.oe), all.x=TRUE)
+      #   divorced.female.oe.est <- merge(agelist, est.bnorm(divorced.female.oe), all.x=TRUE)
+      #   # Remarriage of Widowed
+      #   rw.male.oe.est <- merge(agelist, est.bnorm(rw.male.oe), all.x=TRUE)
+      #   rw.female.oe.est <- merge(agelist, est.bnorm(rw.female.oe), all.x=TRUE)
+      #   # Remarriage of Divorced
+      #   rd.male.oe.est <- merge(agelist, est.bnorm(rd.male.oe), all.x=TRUE)
+      #   rd.female.oe.est <- merge(agelist, est.bnorm(rd.female.oe), all.x=TRUE)
+      #
+      # }
+      #
+      # if (method=="Bayes.log") {
+      #
+      #   # First Marriage
+      #   mrg1.male.oe.est <- merge(agelist, est.blog(mrg1.male.oe), all.x=TRUE)
+      #   mrg1.female.oe.est <- merge(agelist, est.blog(mrg1.female.oe), all.x=TRUE)
+      #   # Divorced
+      #   divorced.male.oe.est <- merge(agelist, est.blog(divorced.male.oe), all.x=TRUE)
+      #   divorced.female.oe.est <- merge(agelist, est.blog(divorced.female.oe), all.x=TRUE)
+      #   # Remarriage of Widowed
+      #   rw.male.oe.est <- merge(agelist, est.blog(rw.male.oe), all.x=TRUE)
+      #   rw.female.oe.est <- merge(agelist, est.blog(rw.female.oe), all.x=TRUE)
+      #   # Remarriage of Divorced
+      #   rd.male.oe.est <- merge(agelist, est.blog(rd.male.oe), all.x=TRUE)
+      #   rd.female.oe.est <- merge(agelist, est.blog(rd.female.oe), all.x=TRUE)
+      #
+      # }
 
       #merge with direct calculate
       mrg1.male.oe <- merge(mrg1.male.oe, mrg1.male.oe.est, all.x=TRUE)
@@ -1531,39 +1531,39 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
 
       }
 
-      if (method=="Bayes.norm"){
-
-        # First Marriage
-        mrg1.male.freq.est <- merge(agelist, est.bnorm(mrg1.male.freq), all.x=TRUE)
-        mrg1.female.freq.est <- merge(agelist, est.bnorm(mrg1.female.freq), all.x=TRUE)
-        # Divorced
-        divorced.male.freq.est <- merge(agelist, est.bnorm(divorced.male.freq), all.x=TRUE)
-        divorced.female.freq.est <- merge(agelist, est.bnorm(divorced.female.freq), all.x=TRUE)
-        # Remarriage of Widowed
-        rw.male.freq.est <- merge(agelist, est.bnorm(rw.male.freq), all.x=TRUE)
-        rw.female.freq.est <- merge(agelist, est.bnorm(rw.female.freq), all.x=TRUE)
-        # Remarriage of Divorced
-        rd.male.freq.est <- merge(agelist, est.bnorm(rd.male.freq), all.x=TRUE)
-        rd.female.freq.est <- merge(agelist, est.bnorm(rd.female.freq), all.x=TRUE)
-
-      }
-
-      if (method=="Bayes.log"){
-
-        # First Marriage
-        mrg1.male.freq.est <- merge(agelist, est.blog(mrg1.male.freq), all.x=TRUE)
-        mrg1.female.freq.est <- merge(agelist, est.blog(mrg1.female.freq), all.x=TRUE)
-        # Divorced
-        divorced.male.freq.est <- merge(agelist, est.blog(divorced.male.freq), all.x=TRUE)
-        divorced.female.freq.est <- merge(agelist, est.blog(divorced.female.freq), all.x=TRUE)
-        # Remarriage of Widowed
-        rw.male.freq.est <- merge(agelist, est.blog(rw.male.freq), all.x=TRUE)
-        rw.female.freq.est <- merge(agelist, est.blog(rw.female.freq), all.x=TRUE)
-        # Remarriage of Divorced
-        rd.male.freq.est <- merge(agelist, est.blog(rd.male.freq), all.x=TRUE)
-        rd.female.freq.est <- merge(agelist, est.blog(rd.female.freq), all.x=TRUE)
-
-      }
+      # if (method=="Bayes.norm"){
+      #
+      #   # First Marriage
+      #   mrg1.male.freq.est <- merge(agelist, est.bnorm(mrg1.male.freq), all.x=TRUE)
+      #   mrg1.female.freq.est <- merge(agelist, est.bnorm(mrg1.female.freq), all.x=TRUE)
+      #   # Divorced
+      #   divorced.male.freq.est <- merge(agelist, est.bnorm(divorced.male.freq), all.x=TRUE)
+      #   divorced.female.freq.est <- merge(agelist, est.bnorm(divorced.female.freq), all.x=TRUE)
+      #   # Remarriage of Widowed
+      #   rw.male.freq.est <- merge(agelist, est.bnorm(rw.male.freq), all.x=TRUE)
+      #   rw.female.freq.est <- merge(agelist, est.bnorm(rw.female.freq), all.x=TRUE)
+      #   # Remarriage of Divorced
+      #   rd.male.freq.est <- merge(agelist, est.bnorm(rd.male.freq), all.x=TRUE)
+      #   rd.female.freq.est <- merge(agelist, est.bnorm(rd.female.freq), all.x=TRUE)
+      #
+      # }
+      #
+      # if (method=="Bayes.log"){
+      #
+      #   # First Marriage
+      #   mrg1.male.freq.est <- merge(agelist, est.blog(mrg1.male.freq), all.x=TRUE)
+      #   mrg1.female.freq.est <- merge(agelist, est.blog(mrg1.female.freq), all.x=TRUE)
+      #   # Divorced
+      #   divorced.male.freq.est <- merge(agelist, est.blog(divorced.male.freq), all.x=TRUE)
+      #   divorced.female.freq.est <- merge(agelist, est.blog(divorced.female.freq), all.x=TRUE)
+      #   # Remarriage of Widowed
+      #   rw.male.freq.est <- merge(agelist, est.blog(rw.male.freq), all.x=TRUE)
+      #   rw.female.freq.est <- merge(agelist, est.blog(rw.female.freq), all.x=TRUE)
+      #   # Remarriage of Divorced
+      #   rd.male.freq.est <- merge(agelist, est.blog(rd.male.freq), all.x=TRUE)
+      #   rd.female.freq.est <- merge(agelist, est.blog(rd.female.freq), all.x=TRUE)
+      #
+      # }
 
       #merge with direct calculate
       mrg1.male.freq <- merge(mrg1.male.freq, mrg1.male.freq.est, all.x=TRUE)
@@ -2121,117 +2121,117 @@ compute.seven <- function(data_oe, data_freq, param, plot, plot.name, method, mf
 
       }
 
-      if (method=="Bayes.norm"){
-
-        # never married & not cohabiting to married
-        mrg1.male.oe.est <- merge(agelist, est.bnorm(mrg1.male.oe), all.x=TRUE)
-        mrg1.female.oe.est <- merge(agelist, est.bnorm(mrg1.female.oe), all.x=TRUE)
-
-        # never married & cohabiting to married
-        nmCm.male.oe.est <- merge(agelist, est.bnorm(nmCm.male.oe), all.x=TRUE)
-        nmCm.female.oe.est <- merge(agelist, est.bnorm(nmCm.female.oe), all.x=TRUE)
-
-        # Divorced
-        divorced.male.oe.est <- merge(agelist, est.bnorm(divorced.male.oe), all.x=TRUE)
-        divorced.female.oe.est <- merge(agelist, est.bnorm(divorced.female.oe), all.x=TRUE)
-
-        # Remarriage of Widowed & not cohabiting
-        rw.male.oe.est <- merge(agelist, est.bnorm(rw.male.oe), all.x=TRUE)
-        rw.female.oe.est <- merge(agelist, est.bnorm(rw.female.oe), all.x=TRUE)
-
-        # remarriage of widowed & cohabiting
-        rwC.male.oe.est <- merge(agelist, est.bnorm(rwC.male.oe), all.x=TRUE)
-        rwC.female.oe.est <- merge(agelist, est.bnorm(rwC.female.oe), all.x=TRUE)
-
-        # Remarriage of Divorced & not cohabiting
-        rd.male.oe.est <- merge(agelist, est.bnorm(rd.male.oe), all.x=TRUE)
-        rd.female.oe.est <- merge(agelist, est.bnorm(rd.female.oe), all.x=TRUE)
-
-        # remarriage of divorced & cohabiting
-        rdC.male.oe.est <- merge(agelist, est.bnorm(rdC.male.oe), all.x=TRUE)
-        rdC.female.oe.est <- merge(agelist, est.bnorm(rdC.female.oe), all.x=TRUE)
-
-        # never married to cohabiting
-        nmtoC.male.oe.est <- merge(agelist, est.bnorm(nmtoC.male.oe), all.x=TRUE)
-        nmtoC.female.oe.est <- merge(agelist,est.bnorm(nmtoC.female.oe), all.x=TRUE)
-
-        # widowed to cohabiting
-        wtoC.male.oe.est <- merge(agelist, est.bnorm(wtoC.male.oe), all.x=TRUE)
-        wtoC.female.oe.est <- merge(agelist, est.bnorm(wtoC.female.oe), all.x=TRUE)
-
-        # divorced to cohabiting
-        dtoC.male.oe.est <- merge(agelist, est.bnorm(dtoC.male.oe), all.x=TRUE)
-        dtoC.female.oe.est <- merge(agelist, est.bnorm(dtoC.female.oe), all.x=TRUE)
-
-        # cohabiting to never married
-        Ctonm.male.oe.est <- merge(agelist, est.bnorm(Ctonm.male.oe), all.x=TRUE)
-        Ctonm.female.oe.est <- merge(agelist, est.bnorm(Ctonm.female.oe), all.x=TRUE)
-
-        # cohabiting to widowed
-        Ctow.male.oe.est <- merge(agelist, est.bnorm(Ctow.male.oe), all.x=TRUE)
-        Ctow.female.oe.est <- merge(agelist, est.bnorm(Ctow.female.oe), all.x=TRUE)
-
-        # cohabiting to divorced
-        Ctod.male.oe.est <- merge(agelist, est.bnorm(Ctod.male.oe), all.x=TRUE)
-        Ctod.female.oe.est <- merge(agelist, est.bnorm(Ctod.female.oe), all.x=TRUE)
-
-      }
-
-      if (method=="Bayes.log"){
-
-        # never married & not cohabiting to married
-        mrg1.male.oe.est <- merge(agelist, est.blog(mrg1.male.oe), all.x=TRUE)
-        mrg1.female.oe.est <- merge(agelist, est.blog(mrg1.female.oe), all.x=TRUE)
-
-        # never married & cohabiting to married
-        nmCm.male.oe.est <- merge(agelist, est.blog(nmCm.male.oe), all.x=TRUE)
-        nmCm.female.oe.est <- merge(agelist, est.blog(nmCm.female.oe), all.x=TRUE)
-
-        # Divorced
-        divorced.male.oe.est <- merge(agelist, est.blog(divorced.male.oe), all.x=TRUE)
-        divorced.female.oe.est <- merge(agelist, est.blog(divorced.female.oe), all.x=TRUE)
-
-        # Remarriage of Widowed & not cohabiting
-        rw.male.oe.est <- merge(agelist, est.blog(rw.male.oe), all.x=TRUE)
-        rw.female.oe.est <- merge(agelist, est.blog(rw.female.oe), all.x=TRUE)
-
-        # remarriage of widowed & cohabiting
-        rwC.male.oe.est <- merge(agelist, est.blog(rwC.male.oe), all.x=TRUE)
-        rwC.female.oe.est <- merge(agelist, est.blog(rwC.female.oe), all.x=TRUE)
-
-        # Remarriage of Divorced & not cohabiting
-        rd.male.oe.est <- merge(agelist, est.blog(rd.male.oe), all.x=TRUE)
-        rd.female.oe.est <- merge(agelist, est.blog(rd.female.oe), all.x=TRUE)
-
-        # remarriage of divorced & cohabiting
-        rdC.male.oe.est <- merge(agelist, est.blog(rdC.male.oe), all.x=TRUE)
-        rdC.female.oe.est <- merge(agelist, est.blog(rdC.female.oe), all.x=TRUE)
-
-        # never married to cohabiting
-        nmtoC.male.oe.est <- merge(agelist, est.blog(nmtoC.male.oe), all.x=TRUE)
-        nmtoC.female.oe.est <- merge(agelist,est.blog(nmtoC.female.oe), all.x=TRUE)
-
-        # widowed to cohabiting
-        wtoC.male.oe.est <- merge(agelist, est.blog(wtoC.male.oe), all.x=TRUE)
-        wtoC.female.oe.est <- merge(agelist, est.blog(wtoC.female.oe), all.x=TRUE)
-
-        # divorced to cohabiting
-        dtoC.male.oe.est <- merge(agelist, est.blog(dtoC.male.oe), all.x=TRUE)
-        dtoC.female.oe.est <- merge(agelist, est.blog(dtoC.female.oe), all.x=TRUE)
-
-        # cohabiting to never married
-        Ctonm.male.oe.est <- merge(agelist, est.blog(Ctonm.male.oe), all.x=TRUE)
-        Ctonm.female.oe.est <- merge(agelist, est.blog(Ctonm.female.oe), all.x=TRUE)
-
-        # cohabiting to widowed
-        Ctow.male.oe.est <- merge(agelist, est.blog(Ctow.male.oe), all.x=TRUE)
-        Ctow.female.oe.est <- merge(agelist, est.blog(Ctow.female.oe), all.x=TRUE)
-
-        # cohabiting to divorced
-        Ctod.male.oe.est <- merge(agelist, est.blog(Ctod.male.oe), all.x=TRUE)
-        Ctod.female.oe.est <- merge(agelist, est.blog(Ctod.female.oe), all.x=TRUE)
-
-      }
+      # if (method=="Bayes.norm"){
+      #
+      #   # never married & not cohabiting to married
+      #   mrg1.male.oe.est <- merge(agelist, est.bnorm(mrg1.male.oe), all.x=TRUE)
+      #   mrg1.female.oe.est <- merge(agelist, est.bnorm(mrg1.female.oe), all.x=TRUE)
+      #
+      #   # never married & cohabiting to married
+      #   nmCm.male.oe.est <- merge(agelist, est.bnorm(nmCm.male.oe), all.x=TRUE)
+      #   nmCm.female.oe.est <- merge(agelist, est.bnorm(nmCm.female.oe), all.x=TRUE)
+      #
+      #   # Divorced
+      #   divorced.male.oe.est <- merge(agelist, est.bnorm(divorced.male.oe), all.x=TRUE)
+      #   divorced.female.oe.est <- merge(agelist, est.bnorm(divorced.female.oe), all.x=TRUE)
+      #
+      #   # Remarriage of Widowed & not cohabiting
+      #   rw.male.oe.est <- merge(agelist, est.bnorm(rw.male.oe), all.x=TRUE)
+      #   rw.female.oe.est <- merge(agelist, est.bnorm(rw.female.oe), all.x=TRUE)
+      #
+      #   # remarriage of widowed & cohabiting
+      #   rwC.male.oe.est <- merge(agelist, est.bnorm(rwC.male.oe), all.x=TRUE)
+      #   rwC.female.oe.est <- merge(agelist, est.bnorm(rwC.female.oe), all.x=TRUE)
+      #
+      #   # Remarriage of Divorced & not cohabiting
+      #   rd.male.oe.est <- merge(agelist, est.bnorm(rd.male.oe), all.x=TRUE)
+      #   rd.female.oe.est <- merge(agelist, est.bnorm(rd.female.oe), all.x=TRUE)
+      #
+      #   # remarriage of divorced & cohabiting
+      #   rdC.male.oe.est <- merge(agelist, est.bnorm(rdC.male.oe), all.x=TRUE)
+      #   rdC.female.oe.est <- merge(agelist, est.bnorm(rdC.female.oe), all.x=TRUE)
+      #
+      #   # never married to cohabiting
+      #   nmtoC.male.oe.est <- merge(agelist, est.bnorm(nmtoC.male.oe), all.x=TRUE)
+      #   nmtoC.female.oe.est <- merge(agelist,est.bnorm(nmtoC.female.oe), all.x=TRUE)
+      #
+      #   # widowed to cohabiting
+      #   wtoC.male.oe.est <- merge(agelist, est.bnorm(wtoC.male.oe), all.x=TRUE)
+      #   wtoC.female.oe.est <- merge(agelist, est.bnorm(wtoC.female.oe), all.x=TRUE)
+      #
+      #   # divorced to cohabiting
+      #   dtoC.male.oe.est <- merge(agelist, est.bnorm(dtoC.male.oe), all.x=TRUE)
+      #   dtoC.female.oe.est <- merge(agelist, est.bnorm(dtoC.female.oe), all.x=TRUE)
+      #
+      #   # cohabiting to never married
+      #   Ctonm.male.oe.est <- merge(agelist, est.bnorm(Ctonm.male.oe), all.x=TRUE)
+      #   Ctonm.female.oe.est <- merge(agelist, est.bnorm(Ctonm.female.oe), all.x=TRUE)
+      #
+      #   # cohabiting to widowed
+      #   Ctow.male.oe.est <- merge(agelist, est.bnorm(Ctow.male.oe), all.x=TRUE)
+      #   Ctow.female.oe.est <- merge(agelist, est.bnorm(Ctow.female.oe), all.x=TRUE)
+      #
+      #   # cohabiting to divorced
+      #   Ctod.male.oe.est <- merge(agelist, est.bnorm(Ctod.male.oe), all.x=TRUE)
+      #   Ctod.female.oe.est <- merge(agelist, est.bnorm(Ctod.female.oe), all.x=TRUE)
+      #
+      # }
+      #
+      # if (method=="Bayes.log"){
+      #
+      #   # never married & not cohabiting to married
+      #   mrg1.male.oe.est <- merge(agelist, est.blog(mrg1.male.oe), all.x=TRUE)
+      #   mrg1.female.oe.est <- merge(agelist, est.blog(mrg1.female.oe), all.x=TRUE)
+      #
+      #   # never married & cohabiting to married
+      #   nmCm.male.oe.est <- merge(agelist, est.blog(nmCm.male.oe), all.x=TRUE)
+      #   nmCm.female.oe.est <- merge(agelist, est.blog(nmCm.female.oe), all.x=TRUE)
+      #
+      #   # Divorced
+      #   divorced.male.oe.est <- merge(agelist, est.blog(divorced.male.oe), all.x=TRUE)
+      #   divorced.female.oe.est <- merge(agelist, est.blog(divorced.female.oe), all.x=TRUE)
+      #
+      #   # Remarriage of Widowed & not cohabiting
+      #   rw.male.oe.est <- merge(agelist, est.blog(rw.male.oe), all.x=TRUE)
+      #   rw.female.oe.est <- merge(agelist, est.blog(rw.female.oe), all.x=TRUE)
+      #
+      #   # remarriage of widowed & cohabiting
+      #   rwC.male.oe.est <- merge(agelist, est.blog(rwC.male.oe), all.x=TRUE)
+      #   rwC.female.oe.est <- merge(agelist, est.blog(rwC.female.oe), all.x=TRUE)
+      #
+      #   # Remarriage of Divorced & not cohabiting
+      #   rd.male.oe.est <- merge(agelist, est.blog(rd.male.oe), all.x=TRUE)
+      #   rd.female.oe.est <- merge(agelist, est.blog(rd.female.oe), all.x=TRUE)
+      #
+      #   # remarriage of divorced & cohabiting
+      #   rdC.male.oe.est <- merge(agelist, est.blog(rdC.male.oe), all.x=TRUE)
+      #   rdC.female.oe.est <- merge(agelist, est.blog(rdC.female.oe), all.x=TRUE)
+      #
+      #   # never married to cohabiting
+      #   nmtoC.male.oe.est <- merge(agelist, est.blog(nmtoC.male.oe), all.x=TRUE)
+      #   nmtoC.female.oe.est <- merge(agelist,est.blog(nmtoC.female.oe), all.x=TRUE)
+      #
+      #   # widowed to cohabiting
+      #   wtoC.male.oe.est <- merge(agelist, est.blog(wtoC.male.oe), all.x=TRUE)
+      #   wtoC.female.oe.est <- merge(agelist, est.blog(wtoC.female.oe), all.x=TRUE)
+      #
+      #   # divorced to cohabiting
+      #   dtoC.male.oe.est <- merge(agelist, est.blog(dtoC.male.oe), all.x=TRUE)
+      #   dtoC.female.oe.est <- merge(agelist, est.blog(dtoC.female.oe), all.x=TRUE)
+      #
+      #   # cohabiting to never married
+      #   Ctonm.male.oe.est <- merge(agelist, est.blog(Ctonm.male.oe), all.x=TRUE)
+      #   Ctonm.female.oe.est <- merge(agelist, est.blog(Ctonm.female.oe), all.x=TRUE)
+      #
+      #   # cohabiting to widowed
+      #   Ctow.male.oe.est <- merge(agelist, est.blog(Ctow.male.oe), all.x=TRUE)
+      #   Ctow.female.oe.est <- merge(agelist, est.blog(Ctow.female.oe), all.x=TRUE)
+      #
+      #   # cohabiting to divorced
+      #   Ctod.male.oe.est <- merge(agelist, est.blog(Ctod.male.oe), all.x=TRUE)
+      #   Ctod.female.oe.est <- merge(agelist, est.blog(Ctod.female.oe), all.x=TRUE)
+      #
+      # }
 
       #merge with direct calculate
       mrg1.male.oe <- merge(mrg1.male.oe, mrg1.male.oe.est, all.x=TRUE)
@@ -2420,117 +2420,117 @@ compute.seven <- function(data_oe, data_freq, param, plot, plot.name, method, mf
 
       }
 
-      if (method=="Bayes.norm"){
-
-        # never married & not cohabiting to married
-        mrg1.male.freq.est <- merge(agelist, est.bnorm(mrg1.male.freq), all.x=TRUE)
-        mrg1.female.freq.est <- merge(agelist, est.bnorm(mrg1.female.freq), all.x=TRUE)
-
-        # never married & cohabiting to married
-        nmCm.male.freq.est <- merge(agelist, est.bnorm(nmCm.male.freq), all.x=TRUE)
-        nmCm.female.freq.est <- merge(agelist, est.bnorm(nmCm.female.freq), all.x=TRUE)
-
-        # Divorced
-        divorced.male.freq.est <- merge(agelist, est.bnorm(divorced.male.freq), all.x=TRUE)
-        divorced.female.freq.est <- merge(agelist, est.bnorm(divorced.female.freq), all.x=TRUE)
-
-        # Remarriage of Widowed & not cohabiting
-        rw.male.freq.est <- merge(agelist, est.bnorm(rw.male.freq), all.x=TRUE)
-        rw.female.freq.est <- merge(agelist, est.bnorm(rw.female.freq), all.x=TRUE)
-
-        # remarriage of widowed & cohabiting
-        rwC.male.freq.est <- merge(agelist, est.bnorm(rwC.male.freq), all.x=TRUE)
-        rwC.female.freq.est <- merge(agelist, est.bnorm(rwC.female.freq), all.x=TRUE)
-
-        # Remarriage of Divorced & not cohabiting
-        rd.male.freq.est <- merge(agelist, est.bnorm(rd.male.freq), all.x=TRUE)
-        rd.female.freq.est <- merge(agelist, est.bnorm(rd.female.freq), all.x=TRUE)
-
-        # remarriage of divorced & cohabiting
-        rdC.male.freq.est <- merge(agelist, est.bnorm(rdC.male.freq), all.x=TRUE)
-        rdC.female.freq.est <- merge(agelist, est.bnorm(rdC.female.freq), all.x=TRUE)
-
-        # never married to cohabiting
-        nmtoC.male.freq.est <- merge(agelist, est.bnorm(nmtoC.male.freq), all.x=TRUE)
-        nmtoC.female.freq.est <- merge(agelist,est.bnorm(nmtoC.female.freq), all.x=TRUE)
-
-        # widowed to cohabiting
-        wtoC.male.freq.est <- merge(agelist, est.bnorm(wtoC.male.freq), all.x=TRUE)
-        wtoC.female.freq.est <- merge(agelist, est.bnorm(wtoC.female.freq), all.x=TRUE)
-
-        # divorced to cohabiting
-        dtoC.male.freq.est <- merge(agelist, est.bnorm(dtoC.male.freq), all.x=TRUE)
-        dtoC.female.freq.est <- merge(agelist, est.bnorm(dtoC.female.freq), all.x=TRUE)
-
-        # cohabiting to never married
-        Ctonm.male.freq.est <- merge(agelist, est.bnorm(Ctonm.male.freq), all.x=TRUE)
-        Ctonm.female.freq.est <- merge(agelist, est.bnorm(Ctonm.female.freq), all.x=TRUE)
-
-        # cohabiting to widowed
-        Ctow.male.freq.est <- merge(agelist, est.bnorm(Ctow.male.freq), all.x=TRUE)
-        Ctow.female.freq.est <- merge(agelist, est.bnorm(Ctow.female.freq), all.x=TRUE)
-
-        # cohabiting to divorced
-        Ctod.male.freq.est <- merge(agelist, est.bnorm(Ctod.male.freq), all.x=TRUE)
-        Ctod.female.freq.est <- merge(agelist, est.bnorm(Ctod.female.freq), all.x=TRUE)
-
-      }
-
-      if (method=="Bayes.log"){
-
-        # never married & not cohabiting to married
-        mrg1.male.freq.est <- merge(agelist, est.blog(mrg1.male.freq), all.x=TRUE)
-        mrg1.female.freq.est <- merge(agelist, est.blog(mrg1.female.freq), all.x=TRUE)
-
-        # never married & cohabiting to married
-        nmCm.male.freq.est <- merge(agelist, est.blog(nmCm.male.freq), all.x=TRUE)
-        nmCm.female.freq.est <- merge(agelist, est.blog(nmCm.female.freq), all.x=TRUE)
-
-        # Divorced
-        divorced.male.freq.est <- merge(agelist, est.blog(divorced.male.freq), all.x=TRUE)
-        divorced.female.freq.est <- merge(agelist, est.blog(divorced.female.freq), all.x=TRUE)
-
-        # Remarriage of Widowed & not cohabiting
-        rw.male.freq.est <- merge(agelist, est.blog(rw.male.freq), all.x=TRUE)
-        rw.female.freq.est <- merge(agelist, est.blog(rw.female.freq), all.x=TRUE)
-
-        # remarriage of widowed & cohabiting
-        rwC.male.freq.est <- merge(agelist, est.blog(rwC.male.freq), all.x=TRUE)
-        rwC.female.freq.est <- merge(agelist, est.blog(rwC.female.freq), all.x=TRUE)
-
-        # Remarriage of Divorced & not cohabiting
-        rd.male.freq.est <- merge(agelist, est.blog(rd.male.freq), all.x=TRUE)
-        rd.female.freq.est <- merge(agelist, est.blog(rd.female.freq), all.x=TRUE)
-
-        # remarriage of divorced & cohabiting
-        rdC.male.freq.est <- merge(agelist, est.blog(rdC.male.freq), all.x=TRUE)
-        rdC.female.freq.est <- merge(agelist, est.blog(rdC.female.freq), all.x=TRUE)
-
-        # never married to cohabiting
-        nmtoC.male.freq.est <- merge(agelist, est.blog(nmtoC.male.freq), all.x=TRUE)
-        nmtoC.female.freq.est <- merge(agelist,est.blog(nmtoC.female.freq), all.x=TRUE)
-
-        # widowed to cohabiting
-        wtoC.male.freq.est <- merge(agelist, est.blog(wtoC.male.freq), all.x=TRUE)
-        wtoC.female.freq.est <- merge(agelist, est.blog(wtoC.female.freq), all.x=TRUE)
-
-        # divorced to cohabiting
-        dtoC.male.freq.est <- merge(agelist, est.blog(dtoC.male.freq), all.x=TRUE)
-        dtoC.female.freq.est <- merge(agelist, est.blog(dtoC.female.freq), all.x=TRUE)
-
-        # cohabiting to never married
-        Ctonm.male.freq.est <- merge(agelist, est.blog(Ctonm.male.freq), all.x=TRUE)
-        Ctonm.female.freq.est <- merge(agelist, est.blog(Ctonm.female.freq), all.x=TRUE)
-
-        # cohabiting to widowed
-        Ctow.male.freq.est <- merge(agelist, est.blog(Ctow.male.freq), all.x=TRUE)
-        Ctow.female.freq.est <- merge(agelist, est.blog(Ctow.female.freq), all.x=TRUE)
-
-        # cohabiting to divorced
-        Ctod.male.freq.est <- merge(agelist, est.blog(Ctod.male.freq), all.x=TRUE)
-        Ctod.female.freq.est <- merge(agelist, est.blog(Ctod.female.freq), all.x=TRUE)
-
-      }
+      # if (method=="Bayes.norm"){
+      #
+      #   # never married & not cohabiting to married
+      #   mrg1.male.freq.est <- merge(agelist, est.bnorm(mrg1.male.freq), all.x=TRUE)
+      #   mrg1.female.freq.est <- merge(agelist, est.bnorm(mrg1.female.freq), all.x=TRUE)
+      #
+      #   # never married & cohabiting to married
+      #   nmCm.male.freq.est <- merge(agelist, est.bnorm(nmCm.male.freq), all.x=TRUE)
+      #   nmCm.female.freq.est <- merge(agelist, est.bnorm(nmCm.female.freq), all.x=TRUE)
+      #
+      #   # Divorced
+      #   divorced.male.freq.est <- merge(agelist, est.bnorm(divorced.male.freq), all.x=TRUE)
+      #   divorced.female.freq.est <- merge(agelist, est.bnorm(divorced.female.freq), all.x=TRUE)
+      #
+      #   # Remarriage of Widowed & not cohabiting
+      #   rw.male.freq.est <- merge(agelist, est.bnorm(rw.male.freq), all.x=TRUE)
+      #   rw.female.freq.est <- merge(agelist, est.bnorm(rw.female.freq), all.x=TRUE)
+      #
+      #   # remarriage of widowed & cohabiting
+      #   rwC.male.freq.est <- merge(agelist, est.bnorm(rwC.male.freq), all.x=TRUE)
+      #   rwC.female.freq.est <- merge(agelist, est.bnorm(rwC.female.freq), all.x=TRUE)
+      #
+      #   # Remarriage of Divorced & not cohabiting
+      #   rd.male.freq.est <- merge(agelist, est.bnorm(rd.male.freq), all.x=TRUE)
+      #   rd.female.freq.est <- merge(agelist, est.bnorm(rd.female.freq), all.x=TRUE)
+      #
+      #   # remarriage of divorced & cohabiting
+      #   rdC.male.freq.est <- merge(agelist, est.bnorm(rdC.male.freq), all.x=TRUE)
+      #   rdC.female.freq.est <- merge(agelist, est.bnorm(rdC.female.freq), all.x=TRUE)
+      #
+      #   # never married to cohabiting
+      #   nmtoC.male.freq.est <- merge(agelist, est.bnorm(nmtoC.male.freq), all.x=TRUE)
+      #   nmtoC.female.freq.est <- merge(agelist,est.bnorm(nmtoC.female.freq), all.x=TRUE)
+      #
+      #   # widowed to cohabiting
+      #   wtoC.male.freq.est <- merge(agelist, est.bnorm(wtoC.male.freq), all.x=TRUE)
+      #   wtoC.female.freq.est <- merge(agelist, est.bnorm(wtoC.female.freq), all.x=TRUE)
+      #
+      #   # divorced to cohabiting
+      #   dtoC.male.freq.est <- merge(agelist, est.bnorm(dtoC.male.freq), all.x=TRUE)
+      #   dtoC.female.freq.est <- merge(agelist, est.bnorm(dtoC.female.freq), all.x=TRUE)
+      #
+      #   # cohabiting to never married
+      #   Ctonm.male.freq.est <- merge(agelist, est.bnorm(Ctonm.male.freq), all.x=TRUE)
+      #   Ctonm.female.freq.est <- merge(agelist, est.bnorm(Ctonm.female.freq), all.x=TRUE)
+      #
+      #   # cohabiting to widowed
+      #   Ctow.male.freq.est <- merge(agelist, est.bnorm(Ctow.male.freq), all.x=TRUE)
+      #   Ctow.female.freq.est <- merge(agelist, est.bnorm(Ctow.female.freq), all.x=TRUE)
+      #
+      #   # cohabiting to divorced
+      #   Ctod.male.freq.est <- merge(agelist, est.bnorm(Ctod.male.freq), all.x=TRUE)
+      #   Ctod.female.freq.est <- merge(agelist, est.bnorm(Ctod.female.freq), all.x=TRUE)
+      #
+      # }
+      #
+      # if (method=="Bayes.log"){
+      #
+      #   # never married & not cohabiting to married
+      #   mrg1.male.freq.est <- merge(agelist, est.blog(mrg1.male.freq), all.x=TRUE)
+      #   mrg1.female.freq.est <- merge(agelist, est.blog(mrg1.female.freq), all.x=TRUE)
+      #
+      #   # never married & cohabiting to married
+      #   nmCm.male.freq.est <- merge(agelist, est.blog(nmCm.male.freq), all.x=TRUE)
+      #   nmCm.female.freq.est <- merge(agelist, est.blog(nmCm.female.freq), all.x=TRUE)
+      #
+      #   # Divorced
+      #   divorced.male.freq.est <- merge(agelist, est.blog(divorced.male.freq), all.x=TRUE)
+      #   divorced.female.freq.est <- merge(agelist, est.blog(divorced.female.freq), all.x=TRUE)
+      #
+      #   # Remarriage of Widowed & not cohabiting
+      #   rw.male.freq.est <- merge(agelist, est.blog(rw.male.freq), all.x=TRUE)
+      #   rw.female.freq.est <- merge(agelist, est.blog(rw.female.freq), all.x=TRUE)
+      #
+      #   # remarriage of widowed & cohabiting
+      #   rwC.male.freq.est <- merge(agelist, est.blog(rwC.male.freq), all.x=TRUE)
+      #   rwC.female.freq.est <- merge(agelist, est.blog(rwC.female.freq), all.x=TRUE)
+      #
+      #   # Remarriage of Divorced & not cohabiting
+      #   rd.male.freq.est <- merge(agelist, est.blog(rd.male.freq), all.x=TRUE)
+      #   rd.female.freq.est <- merge(agelist, est.blog(rd.female.freq), all.x=TRUE)
+      #
+      #   # remarriage of divorced & cohabiting
+      #   rdC.male.freq.est <- merge(agelist, est.blog(rdC.male.freq), all.x=TRUE)
+      #   rdC.female.freq.est <- merge(agelist, est.blog(rdC.female.freq), all.x=TRUE)
+      #
+      #   # never married to cohabiting
+      #   nmtoC.male.freq.est <- merge(agelist, est.blog(nmtoC.male.freq), all.x=TRUE)
+      #   nmtoC.female.freq.est <- merge(agelist,est.blog(nmtoC.female.freq), all.x=TRUE)
+      #
+      #   # widowed to cohabiting
+      #   wtoC.male.freq.est <- merge(agelist, est.blog(wtoC.male.freq), all.x=TRUE)
+      #   wtoC.female.freq.est <- merge(agelist, est.blog(wtoC.female.freq), all.x=TRUE)
+      #
+      #   # divorced to cohabiting
+      #   dtoC.male.freq.est <- merge(agelist, est.blog(dtoC.male.freq), all.x=TRUE)
+      #   dtoC.female.freq.est <- merge(agelist, est.blog(dtoC.female.freq), all.x=TRUE)
+      #
+      #   # cohabiting to never married
+      #   Ctonm.male.freq.est <- merge(agelist, est.blog(Ctonm.male.freq), all.x=TRUE)
+      #   Ctonm.female.freq.est <- merge(agelist, est.blog(Ctonm.female.freq), all.x=TRUE)
+      #
+      #   # cohabiting to widowed
+      #   Ctow.male.freq.est <- merge(agelist, est.blog(Ctow.male.freq), all.x=TRUE)
+      #   Ctow.female.freq.est <- merge(agelist, est.blog(Ctow.female.freq), all.x=TRUE)
+      #
+      #   # cohabiting to divorced
+      #   Ctod.male.freq.est <- merge(agelist, est.blog(Ctod.male.freq), all.x=TRUE)
+      #   Ctod.female.freq.est <- merge(agelist, est.blog(Ctod.female.freq), all.x=TRUE)
+      #
+      # }
 
       #merge with direct calculate
       mrg1.male.freq <- merge(mrg1.male.freq, mrg1.male.freq.est, all.x=TRUE)

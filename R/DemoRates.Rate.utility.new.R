@@ -11,7 +11,6 @@
 #' @import srvyr
 #' @import parallel
 #' @import doParallel
-#' @import INLA
 #' @importFrom survival survSplit Surv
 #' @importFrom stats aggregate na.omit poisson predict reshape setNames
 #' @importFrom tidyr fill
@@ -24,7 +23,7 @@
 #'     If \code{TRUE}, the graph of the comparison between the direct estimations and the Poisson regression results are generated for users. If \code{FALSE}, no plot file is generated. By default, \code{plot = FALSE}.
 #' @param sex Only available for covariate method. Either \code{TRUE} or \code{FALSE}.
 #'     If \code{TRUE}, gender is considered as a factor in estimation. By default, \code{plot = TRUE}.
-#' @param method Only available for subset method. Choose the estimation model. Either \code{NA}, "Poisson", "Bayes.norm", or "Bayes.log".
+#' @param method Only available for subset method. Choose the estimation model. Either \code{NA}, "Poisson".
 #'     If \code{NA}, only direct calculated results will be output. By default, \code{method = NA}.
 #' @param mfp Choose whether to use mfp package or DemoRates-defined function selection process to run Poisson estimation.
 #'     Either \code{TRUE} or \code{FALSE}. If \code{TRUE}, mfp package is used. By default, \code{mfp = TRUE}.
@@ -715,56 +714,56 @@ freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
   return(freq)
 }
 
-est.bnorm <- function(raw_rates){
-
-  data.in <- raw_rates
-
-  y.i <- data.in[, "raw.rates"]
-  age.i <- data.in[, "age"]
-  u <- sd(y.i, na.rm = TRUE)
-
-  mod.data <- list(y.i = y.i, age.i = age.i)
-
-  formula <- y.i ~ -1 +
-    f(age.i, model = "rw2", constr = FALSE, scale.model = FALSE,
-      hyper = list(prec = list(prior = "pc.prec", param = c(u, 0.01))))
-
-  res <- inla(formula, data = mod.data,
-              verbose = FALSE, control.compute = list(config = TRUE),
-              control.predictor = list(compute = TRUE))
-
-  unique.age <- res$summary.random$age.i$ID
-  y_fitted <- res$summary.random$age.i$mean
-  rates <- data.frame(age=unique.age, est.rates=y_fitted)
-
-  return(rates)
-}
-
-est.blog <- function(raw_rates){
-
-  data.in <- raw_rates
-
-  y.i <- data.in[, "raw.rates"]
-  log.y.i <- ifelse(y.i == 0, log(0.1), log(y.i*1000))
-  age.i <- data.in[, "age"]
-  u <- sd(log.y.i, na.rm = T)
-
-  mod.data <- list(log.y.i = log.y.i, age.i = age.i)
-
-  formula <- log.y.i ~ -1 +
-    f(age.i, model = "rw2", constr = FALSE, scale.model = FALSE,
-      hyper = list(prec = list(prior = "pc.prec", param = c(u, 0.01))))
-
-  res <- inla(formula, data = mod.data,
-              verbose = FALSE, control.compute = list(config = TRUE),
-              control.predictor = list(compute = TRUE))
-
-  unique.age <- res$summary.random$age.i$ID
-  log.y_fitted <- exp(res$summary.random$age.i$mean)/1000
-  rates <- data.frame(age=unique.age, est.rates=log.y_fitted)
-
-  return(rates)
-}
+# est.bnorm <- function(raw_rates){
+#
+#   data.in <- raw_rates
+#
+#   y.i <- data.in[, "raw.rates"]
+#   age.i <- data.in[, "age"]
+#   u <- sd(y.i, na.rm = TRUE)
+#
+#   mod.data <- list(y.i = y.i, age.i = age.i)
+#
+#   formula <- y.i ~ -1 +
+#     f(age.i, model = "rw2", constr = FALSE, scale.model = FALSE,
+#       hyper = list(prec = list(prior = "pc.prec", param = c(u, 0.01))))
+#
+#   res <- inla(formula, data = mod.data,
+#               verbose = FALSE, control.compute = list(config = TRUE),
+#               control.predictor = list(compute = TRUE))
+#
+#   unique.age <- res$summary.random$age.i$ID
+#   y_fitted <- res$summary.random$age.i$mean
+#   rates <- data.frame(age=unique.age, est.rates=y_fitted)
+#
+#   return(rates)
+# }
+#
+# est.blog <- function(raw_rates){
+#
+#   data.in <- raw_rates
+#
+#   y.i <- data.in[, "raw.rates"]
+#   log.y.i <- ifelse(y.i == 0, log(0.1), log(y.i*1000))
+#   age.i <- data.in[, "age"]
+#   u <- sd(log.y.i, na.rm = T)
+#
+#   mod.data <- list(log.y.i = log.y.i, age.i = age.i)
+#
+#   formula <- log.y.i ~ -1 +
+#     f(age.i, model = "rw2", constr = FALSE, scale.model = FALSE,
+#       hyper = list(prec = list(prior = "pc.prec", param = c(u, 0.01))))
+#
+#   res <- inla(formula, data = mod.data,
+#               verbose = FALSE, control.compute = list(config = TRUE),
+#               control.predictor = list(compute = TRUE))
+#
+#   unique.age <- res$summary.random$age.i$ID
+#   log.y_fitted <- exp(res$summary.random$age.i$mean)/1000
+#   rates <- data.frame(age=unique.age, est.rates=log.y_fitted)
+#
+#   return(rates)
+# }
 
 freqM.raw <- function(data, nl, nh, status, evt, nWeight){
 
