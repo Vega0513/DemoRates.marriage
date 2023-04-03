@@ -614,11 +614,14 @@ oe.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
         model <- mfp(event ~ fp(age), data=d0, family=poisson)
         pred <- predict(model, pred.data, type="response")
       } else {
-        if (nWeight==0){
-          pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
-        } else {
-          pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
-        }
+        # (revised)
+        # if (nWeight==0){
+        #   pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
+        # } else {
+        #   pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
+        # }
+        pred <- fpPoisson("event", "age", weights = "py", data = d0, pred.data = pred.data)
+        # (revise over)
       }
 
       oe <- data.frame(pred.data$age, pred*12)
@@ -685,9 +688,6 @@ freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
     d0[which(d0$event == evt), "event"] <- 1
     raw.event <- aggregate(d0$event* d0$weight, list(d0$age), sum)
 
-    pred.data<-as.data.frame(d0$age)
-    colnames(pred.data) <- c("age")
-
     if(sum(raw.event$x, na.rm = T) == 0){
       freq <- data.frame(age=seq(nl, nh, 1), est.rates=NA)
     } else{
@@ -696,15 +696,19 @@ freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
         model <- mfp(event ~ fp(age), data=d0, family=poisson)
         pred <- predict(model, type="response")
       } else {
-        if (nWeight==0){
-          pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
-        } else {
-          pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
-        }
+        # (revised)
+        # if (nWeight==0){
+        #   pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
+        # } else {
+        #   pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
+        # }
+        pred <- fpPoisson("event", "age", weights = "py", data = d0, pred.data = d0)
+        # (revise over)
       }
 
       l <- data.frame(d0$age, pred)
-      poi.event <- aggregate(l$pred, list(l$d0.age), sum)
+      # poi.event <- aggregate(l$pred, list(l$d0.age), sum)
+      poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age), sum)
 
       freq <- data.frame(raw.event$Group.1, poi.event$x/t.py$x)
       freq[,2] <- round(freq[,2], 10)
@@ -713,57 +717,6 @@ freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
 
   return(freq)
 }
-
-# est.bnorm <- function(raw_rates){
-#
-#   data.in <- raw_rates
-#
-#   y.i <- data.in[, "raw.rates"]
-#   age.i <- data.in[, "age"]
-#   u <- sd(y.i, na.rm = TRUE)
-#
-#   mod.data <- list(y.i = y.i, age.i = age.i)
-#
-#   formula <- y.i ~ -1 +
-#     f(age.i, model = "rw2", constr = FALSE, scale.model = FALSE,
-#       hyper = list(prec = list(prior = "pc.prec", param = c(u, 0.01))))
-#
-#   res <- inla(formula, data = mod.data,
-#               verbose = FALSE, control.compute = list(config = TRUE),
-#               control.predictor = list(compute = TRUE))
-#
-#   unique.age <- res$summary.random$age.i$ID
-#   y_fitted <- res$summary.random$age.i$mean
-#   rates <- data.frame(age=unique.age, est.rates=y_fitted)
-#
-#   return(rates)
-# }
-#
-# est.blog <- function(raw_rates){
-#
-#   data.in <- raw_rates
-#
-#   y.i <- data.in[, "raw.rates"]
-#   log.y.i <- ifelse(y.i == 0, log(0.1), log(y.i*1000))
-#   age.i <- data.in[, "age"]
-#   u <- sd(log.y.i, na.rm = T)
-#
-#   mod.data <- list(log.y.i = log.y.i, age.i = age.i)
-#
-#   formula <- log.y.i ~ -1 +
-#     f(age.i, model = "rw2", constr = FALSE, scale.model = FALSE,
-#       hyper = list(prec = list(prior = "pc.prec", param = c(u, 0.01))))
-#
-#   res <- inla(formula, data = mod.data,
-#               verbose = FALSE, control.compute = list(config = TRUE),
-#               control.predictor = list(compute = TRUE))
-#
-#   unique.age <- res$summary.random$age.i$ID
-#   log.y_fitted <- exp(res$summary.random$age.i$mean)/1000
-#   rates <- data.frame(age=unique.age, est.rates=log.y_fitted)
-#
-#   return(rates)
-# }
 
 freqM.raw <- function(data, nl, nh, status, evt, nWeight){
 
@@ -827,15 +780,19 @@ freqM.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
         model <- mfp(event ~ fp(age), data=d0, family=poisson)
         pred <- predict(model, type="response")
       } else {
-        if (nWeight==0){
-          pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
-        } else {
-          pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
-        }
+        # (revised)
+        # if (nWeight==0){
+        #   pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
+        # } else {
+        #   pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
+        # }
+        pred <- fpPoisson("event", "age", weights = "py", data = d0, pred.data = d0)
+        # (revise over)
       }
 
       l <- data.frame(d0$age, pred)
-      poi.event <- aggregate(l$pred, list(l$d0.age), sum)
+      # poi.event <- aggregate(l$pred, list(l$d0.age), sum)
+      poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age), sum)
 
       freq <- data.frame(raw.event$Group.1, poi.event$x/t.py$x)
       freq[,2] <- round(freq[,2], 10)
@@ -897,11 +854,15 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {               #if use self-defined formula selection
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # (revised)
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          # the estimation of "event" is rate/month
+          pred <- fpPoisson("event", "age", "sex", weights = "py", data=d0, pred.data = pred.data)
+          # (revise over)
         }
 
         l <- data.frame(pred.data$age, pred.data$sex, pred*12)
@@ -929,11 +890,14 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", NA, weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", NA, weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # (revised)
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", NA, weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", NA, weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", NA, weights = "py", data=d0, pred.data = pred.data)
+          # (revise over)
         }
 
         l <- data.frame(pred.data$age, pred*12)
@@ -962,11 +926,14 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region)+as.factor(sex)+as.factor(ru), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex region ru", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "sex region ru", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # (revised)
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex region ru", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex region ru", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "sex region ru", weights = "py", data=d0, pred.data = pred.data)
+          # (revise over)
         }
 
         l <- data.frame(pred.data$region, pred.data$age, pred.data$ru, pred.data$sex, pred*12)
@@ -991,11 +958,14 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(ru)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex ru", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "sex ru", weights = "weight", data=d0, pred.data = pred.data)
-          }
+
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex ru", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex ru", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "sex ru", weights = "py", data=d0, pred.data = pred.data)
+
         }
 
         l <- data.frame(pred.data$ru, pred.data$age, pred.data$sex, pred*12)
@@ -1024,11 +994,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex region", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "sex region", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex region", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex region", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "sex region", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$region, pred.data$age, pred.data$sex, pred*12)
@@ -1057,11 +1028,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "region", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "region", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "region", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "region", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "region", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$region, pred.data$age, pred*12)
@@ -1090,11 +1062,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(ru), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "ru", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "ru", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "ru", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "ru", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "ru", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$ru, pred.data$age, pred*12)
@@ -1123,11 +1096,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(race)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "race sex", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "race sex", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "race sex", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "race sex", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "race sex", weights = "py", data=d0, pred.data = pred.data)
 
         }
 
@@ -1157,11 +1131,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(race), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "race", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "race", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "race", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "race", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "race", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$race, pred.data$age, pred*12)
@@ -1190,11 +1165,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(edu)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "edu sex", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "edu sex", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "edu sex", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "edu sex", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "edu sex", weights = "py", data=d0, pred.data = pred.data)
 
         }
 
@@ -1224,11 +1200,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(with_p)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "with_p sex", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "with_p sex", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "with_p sex", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "with_p sex", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "with_p sex", weights = "py", data=d0, pred.data = pred.data)
 
         }
 
@@ -1258,11 +1235,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(with_c)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "with_c sex", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "with_c sex", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "with_c sex", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "with_c sex", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "with_c sex", weights = "py", data=d0, pred.data = pred.data)
 
         }
 
@@ -1292,11 +1270,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(mar)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "mar sex", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "mar sex", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "mar sex", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "mar sex", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "mar sex", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$mar, pred.data$age, pred.data$sex, pred*12)
@@ -1325,11 +1304,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region)+as.factor(ru), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "region ru", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "region ru", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "region ru", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "region ru", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "region ru", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$region, pred.data$age, pred.data$ru, pred*12)
@@ -1358,11 +1338,12 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(mar)+as.factor(sex)+as.factor(ru), data=d0, family=poisson)
           pred <- predict(model, pred.data, type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "mar sex ru", weights = NA, data=d0, pred.data = pred.data)
-          } else {
-            pred <- fpPoisson("event", "age", "mar sex ru", weights = "weight", data=d0, pred.data = pred.data)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "mar sex ru", weights = NA, data=d0, pred.data = pred.data)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "mar sex ru", weights = "weight", data=d0, pred.data = pred.data)
+          # }
+          pred <- fpPoisson("event", "age", "mar sex ru", weights = "py", data=d0, pred.data = pred.data)
         }
 
         l <- data.frame(pred.data$mar, pred.data$age, pred.data$ru, pred.data$sex, pred*12)
@@ -1413,15 +1394,17 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model, data.frame(age=d0$age, sex=as.factor(d0$sex)), type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.sex), sum)
+        # poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.1, raw.event$Group.2, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex)
@@ -1439,15 +1422,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", NA, weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", NA, weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", NA, weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", NA, weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", NA, weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age), sum)
         freq <- data.frame(raw.event$Group.1, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("age", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age)
@@ -1465,15 +1449,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region)+as.factor(ru)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, region=as.factor(d0$region), ru=as.factor(d0$ru), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "region ru sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "region ru sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "region ru sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "region ru sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "region ru sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$region, d0$ru, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.region, l$d0.ru, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.region, l$d0.ru, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$Group.4, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("region", "age", "ru", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, region, ru)
@@ -1491,15 +1476,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region)+as.factor(ru), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, region=as.factor(d0$region), ru=as.factor(d0$ru)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "region ru", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "region ru", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "region ru", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "region ru", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "region ru", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$region, d0$ru, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.region, l$d0.ru), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.region, l$d0.ru), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("region", "age", "ru", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, region, ru)
@@ -1517,15 +1503,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(ru)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, ru=as.factor(d0$ru), sex=as.factor(d0$sex)), type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex ru", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "sex ru", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex ru", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex ru", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "sex ru", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$ru, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.ru, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.ru, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("ru", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, ru)
@@ -1543,15 +1530,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, region=as.factor(d0$region), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "sex region", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "sex region", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "sex region", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "sex region", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "sex region", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$region, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.region, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.region, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("region", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, region)
@@ -1569,15 +1557,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(region), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, region=as.factor(d0$region)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "region", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "region", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "region", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "region", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "region", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$region, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.region), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.region), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("region", "age", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, region)
@@ -1595,15 +1584,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(ru), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, ru=as.factor(d0$ru)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "ru", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "ru", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "ru", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "ru", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "ru", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$ru, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.ru), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.ru), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("ru", "age", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, ru)
@@ -1621,15 +1611,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(race), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, race=as.factor(d0$race)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "race", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "race", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "race", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "race", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "race", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$race, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.race), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.race), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("race", "age", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, race)
@@ -1647,15 +1638,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(race)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age,race=as.factor(d0$race), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "race sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "race sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "race sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "race sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "race sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$race, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.race, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.race, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("race", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, race)
@@ -1673,15 +1665,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(edu)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, edu=as.factor(d0$edu), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "edu sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "edu sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "edu sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "edu sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "edu sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$edu, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.edu, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.edu, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("edu", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, edu)
@@ -1699,15 +1692,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(with_p)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age,with_p=as.factor(d0$with_p), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "with_p sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "with_p sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "with_p sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "with_p sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "with_p sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$with_p, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.with_p, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.with_p, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("with_p", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, with_p)
@@ -1725,15 +1719,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(with_c)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, with_c=as.factor(d0$with_c), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "with_c sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "with_c sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "with_c sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "with_c sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "with_c sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$with_c, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.with_c, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.with_c, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("with_c", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, with_c)
@@ -1751,15 +1746,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(mar)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, mar=as.factor(d0$mar), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "mar sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "mar sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "mar sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "mar sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "mar sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$mar, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.mar, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.mar, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("mar", "age", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, mar)
@@ -1777,15 +1773,16 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
           model <- mfp(event ~ fp(age)+as.factor(mar)+as.factor(ru)+as.factor(sex), data=d0, family=poisson)
           pred <- predict(model,data.frame(age=d0$age, mar=as.factor(d0$mar), ru=as.factor(d0$ru), sex=as.factor(d0$sex)),type="response")
         } else {
-          if (nWeight==0){
-            pred <- fpPoisson("event", "age", "mar ru sex", weights = NA, data=d0, pred.data = d0)
-          } else {
-            pred <- fpPoisson("event", "age", "mar ru sex", weights = "weight", data=d0, pred.data = d0)
-          }
+          # if (nWeight==0){
+          #   pred <- fpPoisson("event", "age", "mar ru sex", weights = NA, data=d0, pred.data = d0)
+          # } else {
+          #   pred <- fpPoisson("event", "age", "mar ru sex", weights = "weight", data=d0, pred.data = d0)
+          # }
+          pred <- fpPoisson("event", "age", "mar ru sex", weights = "py", data=d0, pred.data = d0)
         }
 
         l <- data.frame(d0$age, d0$mar, d0$ru, d0$sex, pred)
-        poi.event <- aggregate(l$pred, list(l$d0.age, l$d0.mar, l$d0.ru, l$d0.sex), sum)
+        poi.event <- aggregate(l$pred*d0$weight, list(l$d0.age, l$d0.mar, l$d0.ru, l$d0.sex), sum)
         freq <- data.frame(raw.event$Group.2, raw.event$Group.1, raw.event$Group.3, raw.event$Group.4, raw.event$x/t.py$x, poi.event$x/t.py$x)
         names(freq) <- c("mar", "age", "ru", "sex", "raw.rates", "est.rates")
         freq <- freq %>% arrange(age, sex, mar, ru)
@@ -1895,289 +1892,6 @@ tmp.colSum.w.na <- function(d){
 }
 
 
-##------Fitting---------------
-##All the following is coded by Prof. Zhang Junni's team
-
-# fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
-#   # 分数多项式-泊松回归
-#   #  Args:
-#   #   depvar (character): 因变量，event
-#   #   fpvar (character): 需要做fp的连续型自变量，age
-#   #   byvar (character): 其余不做处理的自变量，可以为多个，每个变量名间用空格分隔，sex ru
-#   #   weights (character): glm函数调用的权重，汇总后的人月py
-#   #   data (dataframe): 汇总的人月数据d0_group
-#   #   pred.data (dataframe): 预测所需要的自变量
-#   #  Returns:
-#   #   pred (vector): 对应拟合结果
-#   #pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = pred.data)
-#   #depvar="event"; fpvar="age";byvar="sex";weights = "weight";data=d0;
-#
-#   #检查数据中是否有所需变量
-#   depin <- depvar %in% names(data)
-#   fpin <- fpvar %in% names(data)
-#   weightin <- is.na(weights) || weights %in% names(data)
-#
-#   #判断合法则分情况拟合模型
-#   if(depin && fpin && weightin){
-#     #没有协变量
-#     if(is.na(byvar)){
-#       if(is.na(weights)){
-#         #若不加入权重，直接调用selectfp
-#         fpmodel <- select_fp(Y = eval(parse(text = paste0("data$", depvar))),
-#                              X = eval(parse(text = paste0("data$", fpvar))))
-#       }else{
-#         #若加入权重，先汇总数据
-#         data_group <- aggregate(eval(parse(text = paste0("data$", weights))),
-#                                 list(eval(parse(text = paste0("data$", fpvar))),
-#                                      eval(parse(text = paste0("data$", depvar)))),
-#                                 sum)
-#         colnames(data_group) = c(fpvar, depvar, weights)
-#         data_group <- arrange(data_group, fpvar, depvar)
-#         #对汇总后数据调用selectfp
-#         fpmodel <- select_fp(Y = eval(parse(text = paste0("data_group$", depvar))),
-#                              X = eval(parse(text = paste0("data_group$", fpvar))),
-#                              weight = eval(parse(text = paste0("data_group$", weights))))
-#       }
-#     }else{#存在协变量
-#       byvars <- strsplit(byvar, " ")[[1]] #识别bycar中的字符串
-#       #检查数据集中是否有所需协变量
-#       if(all(byvars %in% names(data) == T)){
-#         bydata <- subset(data, select=byvars)
-#         if(is.na(weights)){
-#           #若不加入权重，直接调用selectfp
-#           fpmodel <- select_fp(Y = eval(parse(text = paste0("data$", depvar))),
-#                                X = eval(parse(text = paste0("data$", fpvar))),
-#                                byvar = bydata)
-#         }else{
-#           #若加入权重，先汇总数据
-#           datalist <- as.list(bydata)
-#           datalist[[fpvar]] <- eval(parse(text = paste0("data$", fpvar)))
-#           datalist[[depvar]] <- eval(parse(text = paste0("data$", depvar)))
-#           data_group <- aggregate(eval(parse(text = paste0("data$", weights))),
-#                                   datalist, sum)
-#           data_group <- arrange(data_group, fpvar, depvar)
-#           bydata_group <- subset(data_group, select=byvars)
-#           #对汇总后数据调用selectfp
-#           fpmodel <- select_fp(Y = eval(parse(text = paste0("data_group$", depvar))),
-#                                X = eval(parse(text = paste0("data_group$", fpvar))),
-#                                byvar = bydata_group,
-#                                weight = data_group$x)
-#         }
-#       }else{
-#         print("Non-existent covariable") #报错
-#       }
-#     }
-#   }else{
-#     print("Non-existent mainvariable") #报错
-#   }
-#
-#   #预测
-#   ##准备预测数据
-#   pred <- c()
-#
-#   pred.fp <- eval(parse(text = paste0("pred.data$", fpvar)))
-#   pow <- c(-2,-1,-0.5,0,0.5,1,2,3)
-#   k <- 17; rem <- list()
-#   for (i in 1:7){
-#     for (j in (i+1):8){
-#       rem[[k]] <- c(i,j)
-#       k <- k+1
-#     }
-#   }
-#
-#   m <- fpmodel$power
-#   if(m>=1 && m<=8){
-#     # pred.data$'fp...i.' <- pred.fp^pow[m]
-#     pred.data$'fp1' <- pred.fp^pow[m]
-#     pred <- predict(fpmodel$model, pred.data, type="response")
-#   }else if(m>=9 && m<=16){
-#     # pred.data$'fp...i.' <- pred.fp^pow[m-8]
-#     pred.data$'fp1' <- pred.fp^pow[m-8]
-#     # pred.data$'fp_log...i.' <- pred.fp^pow[m-8]*log(pred.fp)
-#     pred.data$'fp2' <- pred.fp^pow[m-8]*log(pred.fp)
-#     pred <- predict(fpmodel$model, pred.data, type="response")
-#   }else{
-#     # pred.data$'fp...i.' <- pred.fp^pow[rem[[m]]][1]
-#     pred.data$'fp1' <- pred.fp^pow[rem[[m]]][1]
-#     # pred.data$'fp...j.' <- pred.fp^pow[rem[[m]]][2]
-#     pred.data$'fp2' <- pred.fp^pow[rem[[m]]][2]
-#     pred <- predict(fpmodel$model, pred.data, type="response")
-#   }
-#
-#   return(pred)
-# }
-#
-# # Y = eval(parse(text = paste0("data_group$", depvar)));
-# # X = eval(parse(text = paste0("data_group$", fpvar)));
-# # weight = eval(parse(text = paste0("data_group$", weights)));
-# # byvar = data.frame(rep(NA, length(X)));
-#
-# select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X))), weight = NA) {
-#   ##Compute the powers of fpvar
-#   fp <-
-#     data.frame(X ^ (-2), X ^ (-1), X ^ (-0.5), log(X), X ^ 0.5, X, X ^ 2, X ^ 3)
-#   fp_log <- data.frame(
-#     X ^ (-2) * log(X),
-#     X ^ (-1) * log(X),
-#     X ^ (-0.5) * log(X),
-#     log(X) * log(X),
-#     X ^ 0.5 * log(X),
-#     X * log(X),
-#     X ^ 2 * log(X),
-#     X ^ 3 * log(X)
-#   )
-#
-#   X_all <-
-#     list() #The list of all variables(including depvar,fpvar and byvar)
-#   rem <- matrix(nrow = 28, ncol = 2)
-#
-#   ##The list of results
-#   result <- list()
-#   result_aic <- c()
-#
-#   ##Model fitting
-#   if (length(weight) == 1) {
-#     ###Unary(8 types)
-#     for (i in 1:8) {
-#       temp <- data.frame(cbind(Y, fp[, i], byvar[,!apply(is.na(byvar), 2, any)]))
-#       if(dim(as.data.frame(byvar[,!apply(is.na(byvar), 2, any)]))[2]==0){colnames(byvar)=NULL}
-#       colnames(temp) <- c('Y', 'fp1', colnames(byvar))
-#       X_all[[i]] <- temp
-#       # if (is.na(byvar)){X_all[[i]] <- data.frame(cbind(Y, fp[, i]))}
-#       # else {X_all[[i]] <- data.frame(cbind(Y, fp[, i], byvar))}
-#       result[[i]] <-
-#         glm(
-#           Y ~ .,
-#           family = poisson(link = log),
-#           data = X_all[[i]],
-#         )
-#       result_aic[i] <- result[[i]]$aic
-#     }
-#
-#     ###Binary with same powers(8 types)
-#     for (i in 1:8) {
-#       temp <- data.frame(cbind(Y, fp[, i], fp_log[, i], byvar[,!apply(is.na(byvar), 2, any)]))
-#       if(dim(as.data.frame(byvar[,!apply(is.na(byvar), 2, any)]))[2]==0){colnames(byvar)=NULL}
-#       colnames(temp) <- c('Y', 'fp1', 'fp2', colnames(byvar))
-#       X_all[[i+8]] <- temp
-#       # if (is.na(byvar)){X_all[[i + 8]] <- data.frame(cbind(Y, fp[, i], fp_log[, i]))}
-#       # else {X_all[[i + 8]] <- data.frame(cbind(Y, fp[, i], fp_log[, i], byvar))}
-#       result[[i + 8]] <-
-#         glm(
-#           Y ~ .,
-#           family = poisson(link = log),
-#           data = X_all[[i + 8]],
-#         )
-#       result_aic[i + 8] <- result[[i + 8]]$aic
-#     }
-#
-#     ###Binary with different powers(28 types)
-#     k <- 17
-#     for (i in 1:7) {
-#       for (j in (i + 1):8) {
-#         temp <- data.frame(cbind(Y, fp[, i], fp[, j], byvar[,!apply(is.na(byvar), 2, any)]))
-#         if(dim(as.data.frame(byvar[,!apply(is.na(byvar), 2, any)]))[2]==0){colnames(byvar)=NULL}
-#         colnames(temp) <- c('Y', 'fp1', 'fp2', colnames(byvar))
-#         X_all[[k]] <- temp
-#         # X_all[[k]] <- data.frame(cbind(Y, fp[, i], byvar[,!apply(is.na(byvar), 2, any)]))
-#         # if (is.na(byvar)){X_all[[k]] <- data.frame(cbind(Y, fp[, i], fp[, j]))}
-#         # else {X_all[[k]] <- data.frame(cbind(Y, fp[, i], fp[, j], byvar))}
-#
-#         result[[k]] <-
-#           glm(
-#             Y ~ .,
-#             family = poisson(link = log),
-#             data = X_all[[k]],
-#           )
-#         result_aic[k] <- result[[k]]$aic
-#         rem[(k - 16), 1] <- i
-#         rem[(k - 16), 2] <- j
-#         k <- k + 1
-#       }
-#     }
-#   }
-#   else{
-#     ###Unary(8 types)
-#     for (i in 1:8) {
-#       temp <- data.frame(cbind(Y, fp[, i], byvar[,!apply(is.na(byvar), 2, any)]))
-#       if(dim(as.data.frame(byvar[,!apply(is.na(byvar), 2, any)]))[2]==0){colnames(byvar)=NULL}
-#       colnames(temp) <- c('Y', 'fp1', colnames(byvar))
-#       X_all[[i]] <- temp
-#       # if (all(is.na(byvar))){X_all[[i]] <- data.frame(cbind(Y, fp[, i]))}
-#       # else {X_all[[i]] <- data.frame(cbind(Y, fp[, i], byvar))}
-#       result[[i]] <-
-#         glm(
-#           Y ~ .,
-#           family = poisson(link = log),
-#           data = X_all[[i]],
-#           weights = weight,
-#         )
-#       result_aic[i] <- result[[i]]$aic
-#     }
-#
-#     ###Binary with same powers(8 types)
-#     for (i in 1:8) {
-#       temp <- data.frame(cbind(Y, fp[, i], fp_log[, i], byvar[,!apply(is.na(byvar), 2, any)]))
-#       if(dim(as.data.frame(byvar[,!apply(is.na(byvar), 2, any)]))[2]==0){colnames(byvar)=NULL}
-#       colnames(temp) <- c('Y', 'fp1', 'fp2', colnames(byvar))
-#       X_all[[i+8]] <- temp
-#       # if (is.na(byvar)){X_all[[i + 8]] <- data.frame(cbind(Y, fp[, i], fp_log[, i]))}
-#       # else {X_all[[i + 8]] <- data.frame(cbind(Y, fp[, i], fp_log[, i], byvar))}
-#       result[[i + 8]] <-
-#         glm(
-#           Y ~ .,
-#           family = poisson(link = log),
-#           data = X_all[[i + 8]],
-#           weights = weight,
-#         )
-#       result_aic[i + 8] <- result[[i + 8]]$aic
-#     }
-#
-#     ###Binary with different powers(28 types)
-#     k <- 17
-#     for (i in 1:7) {
-#       for (j in (i + 1):8) {
-#         temp <- data.frame(cbind(Y, fp[, i], fp[, j], byvar[,!apply(is.na(byvar), 2, any)]))
-#         if(dim(as.data.frame(byvar[,!apply(is.na(byvar), 2, any)]))[2]==0){colnames(byvar)=NULL}
-#         colnames(temp) <- c('Y', 'fp1', 'fp2', colnames(byvar))
-#         X_all[[k]] <- temp
-#         # if (is.na(byvar)){X_all[[k]] <- data.frame(cbind(Y, fp[, i], fp[, j]))}
-#         # else {X_all[[k]] <- data.frame(cbind(Y, fp[, i], fp[, j], byvar))}
-#         result[[k]] <-
-#           glm(
-#             Y ~ .,
-#             family = poisson(link = log),
-#             data = X_all[[k]],
-#             weights = weight,
-#           )
-#         result_aic[k] <- result[[k]]$aic
-#         rem[(k - 16), 1] <- i
-#         rem[(k - 16), 2] <- j
-#         k <- k + 1
-#       }
-#     }
-#   }
-#
-#   ##Choose the model with least aic
-#   m <- which.min(result_aic)
-#   # pow <- c(-2,-1,-0.5, 0, 0.5, 1, 2, 3)
-#   # print("The power(s) of the fpvar is/are: ")
-#   # res <- case_when((m >= 1 && m <= 8) ~ pow[m],
-#   #                  (m >= 9 &&
-#   #                     m <= 16) ~ c(pow[m - 8], pow[m - 8]),
-#   #                  (m >= 17 &&
-#   #                     m <= 44) ~ c(pow[rem[abs(m - 16), 1]], pow[rem[abs(m - 16), 2]]))
-#   # print(res)
-#
-#   fpmodel <- list()
-#   fpmodel$power <- m
-#   fpmodel$model <- result[[m]]
-#
-#   ##Return the model
-#   return(fpmodel)
-# }
-
-
 ##------Fitting-------
 fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
   # 分数多项式-泊松回归
@@ -2190,8 +1904,8 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
   #   pred.data (dataframe): 预测所需要的自变量
   #  Returns:
   #   pred (vector): 对应拟合结果
-  #pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = pred.data)
-  #depvar="event"; fpvar="age";byvar="sex";weights = "weight";data=d0;
+  # pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = pred.data)
+  # depvar="event"; fpvar="age";byvar="sex";weights = "py";data=d0;
 
   #检查数据中是否有所需变量
   depin <- depvar %in% names(data)
@@ -2220,10 +1934,12 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
                              weight = eval(parse(text = paste0("data_group$", weights))))
       }
     }else{#存在协变量
-      byvars <- strsplit(byvar, " ")[[1]] #识别bycar中的字符串
+      byvars <- strsplit(byvar, " ")[[1]] #识别byvar中的字符串
       #检查数据集中是否有所需协变量
       if(all(byvars %in% names(data) == T)){
         bydata <- subset(data, select=byvars)
+        bydata[] <- lapply(bydata, factor)
+
         if(is.na(weights)){
           #若不加入权重，直接调用selectfp
           fpmodel <- select_fp(Y = eval(parse(text = paste0("data$", depvar))),
@@ -2238,6 +1954,8 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
                                   datalist, sum)
           data_group <- arrange(data_group, fpvar, depvar)
           bydata_group <- subset(data_group, select=byvars)
+          bydata_group[] <- lapply(bydata_group, factor)
+
           #对汇总后数据调用selectfp
           fpmodel <- select_fp(Y = eval(parse(text = paste0("data_group$", depvar))),
                                X = eval(parse(text = paste0("data_group$", fpvar))),
@@ -2265,6 +1983,14 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
       rem[[k]] <- c(i,j)
       k <- k+1
     }
+  }
+
+  ## 协变量因子化
+  if(length(byvars) > 1){
+    bydata <- select(pred.data, byvars)
+    pred.data0 <- select(pred.data, -byvars)
+    bydata[] <- lapply(bydata, factor)
+    pred.data <- c(pred.data0, bydata)
   }
 
   m <- fpmodel$power
@@ -2334,6 +2060,9 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
   result <- list()
   result_dev <- c()
 
+  ##Treat byvar as categorical
+  byvar[] <- lapply(byvar, factor)
+
   ##Model fitting
   if (length(weight) == 1) {
     ###Unary(8 types)
@@ -2349,6 +2078,7 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
           Y ~ .,
           family = poisson(link = log),
           data = c(X_all[[i]]),
+          na.action = 'na.exclude',
         )
       result_dev[i] <- result[[i]]$dev
     }
@@ -2366,6 +2096,7 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
           Y ~ .,
           family = poisson(link = log),
           data = c(X_all[[i + 8]]),
+          na.action = 'na.exclude',
         )
       result_dev[i + 8] <- result[[i + 8]]$dev
     }
@@ -2387,6 +2118,7 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
             Y ~ .,
             family = poisson(link = log),
             data = c(X_all[[k]]),
+            na.action = 'na.exclude',
           )
         result_dev[k] <- result[[k]]$dev
         rem[(k - 16), 1] <- i
@@ -2410,6 +2142,7 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
           family = poisson(link = log),
           data = c(X_all[[i]]),
           weights = weight,
+          na.action = 'na.exclude',
         )
       result_dev[i] <- result[[i]]$dev
     }
@@ -2428,6 +2161,7 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
           family = poisson(link = log),
           data = c(X_all[[i + 8]]),
           weights = weight,
+          na.action = 'na.exclude',
         )
       result_dev[i + 8] <- result[[i + 8]]$dev
     }
@@ -2448,6 +2182,7 @@ select_fp <-function(Y = depvar, X = fpvar, byvar = data.frame(rep(NA, length(X)
             family = poisson(link = log),
             data = c(X_all[[k]]),
             weights = weight,
+            na.action = 'na.exclude',
           )
         result_dev[k] <- result[[k]]$dev
         rem[(k - 16), 1] <- i
