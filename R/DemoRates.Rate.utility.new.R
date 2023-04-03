@@ -216,8 +216,6 @@ run.rates <- function(file=NA, csv=FALSE, para=NA, plot=FALSE, sex=TRUE, method=
     }
   }
 
-  return()
-
 }
 
 ##------Estimation-------

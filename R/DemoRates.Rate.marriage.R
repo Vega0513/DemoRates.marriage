@@ -3873,9 +3873,15 @@ pop.count.four.sex <- function(data, nlm, nhm){
   female.widowed <- merge(age, subset(temp, sex == 2 & status == 3, select=c(age, count)), all.x=TRUE)
   male.divorced <- merge(age, subset(temp, sex == 1 & status == 4, select=c(age, count)), all.x=TRUE)
   female.divorced <- merge(age, subset(temp, sex == 2 & status == 4, select=c(age, count)), all.x=TRUE)
-  all.male <- merge(age, subset(all, sex == 1, select=c(age, count)), all.x=TRUE)
+
+  if (nrow(all)==0){
+    all.male <- all.female <- merge(age, all, all.x=T)
+  } else {
+    all.male <- merge(age, subset(all, sex == 1, select=c(age, count)), all.x=TRUE)
+    all.female <- merge(age, subset(all, sex == 2, select=c(age, count)), all.x=TRUE)
+  }
+
   names(all.male) <- c("age", "count")
-  all.female <- merge(age, subset(all, sex == 2, select=c(age, count)), all.x=TRUE)
   names(all.female) <- c("age", "count")
 
   status <- data.frame(age=age$age, all.male=all.male$count, male.never.married=male.nm$count,
@@ -3909,13 +3915,14 @@ pop.count.four.sex <- function(data, nlm, nhm){
 
   if(nrow(t)==0){       #if not such event, leave empty
     all <- data.frame(age=NA,sex=NA,x=NA)[F,]
+    all.male <- all.female <- merge(age, all, all.x=T)
   } else {
     all <- aggregate(t[,4], list(age=t$age, sex=t$sex), sum)
+    all.male <-  merge(age, subset(all, sex == 1, select=c(age, x)), all.x=TRUE)
+    all.female <-  merge(age, subset(all, sex == 2, select=c(age, x)), all.x=TRUE)
   }
 
-  all.male <-  merge(age, subset(all, sex == 1, select=c(age, x)), all.x=TRUE)
   names(all.male) <- c("age", "count")
-  all.female <-  merge(age, subset(all, sex == 2, select=c(age, x)), all.x=TRUE)
   names(all.female) <- c("age", "count")
 
   event <- data.frame(age=age$age, all.male=all.male$count, male.mrg1=male.mrg1$count,
