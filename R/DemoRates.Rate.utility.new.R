@@ -818,7 +818,7 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
   }
 
   if(nrow(d0) == 0){                 #if no risk population, leave empty
-    oe <- data.frame(null.rates(d0, nl, nh, byvar), raw.rates=NA, est.rates=NA)
+    oe <- data.frame(null.rates(data, nl, nh, byvar), raw.rates=NA, est.rates=NA)
   } else{
 
     #generate prediction data frame to store rates.
@@ -1375,7 +1375,7 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
   }
 
   if(nrow(d0) == 0){
-    freq <- data.frame(null.rates(d0, nl, nh, byvar), raw.rates=NA, est.rates=NA)
+    freq <- data.frame(null.rates(data, nl, nh, byvar), raw.rates=NA, est.rates=NA)
   } else{
 
     d0[which(d0$event != evt & d0$event != 0), "event"] <- 0
