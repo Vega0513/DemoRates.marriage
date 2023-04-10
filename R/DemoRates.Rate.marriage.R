@@ -1801,7 +1801,7 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
                     plot.name, byvar, cal_oe, cal_freq)
   }
 
-  if (byvar!="reg.ru.nosex"&byvar!="region.nosex"&byvar!="sex.nosex"&byvar!="ru.nosex") {
+  if (byvar!="reg.ru.nosex"&byvar!="region.nosex"&byvar!="sex.nosex"&byvar!="ru.nosex"&byvar!="race.nosex") {
     agelist <- arrange.covar(agelist, byvar)
     agelist <- agelist %>% select(-sex) %>% distinct()
     rates.by <- agelist
@@ -1928,7 +1928,34 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
                                   remarriage.divorced=rd.freq[, "raw.rates"])
     }
 
-  }  else if (byvar=="ru.nosex"){
+  } else if (byvar=="race.nosex"){
+
+    agelist <- agelist %>% arrange(age, race)
+    rates.by <- data.frame(age=agelist$age, race=agelist$race)
+
+    if(cal_oe == TRUE){
+      oe.rates <- data.frame(rates.by, mrg1=mrg1.oe[, "est.rates"],
+                             divorced=divorced.oe[, "est.rates"],
+                             remarriage.widowed=rw.oe[, "est.rates"],
+                             remarriage.divorced=rd.oe[, "est.rates"])
+      raw.oe.rates <- data.frame(rates.by, mrg1=mrg1.oe[, "raw.rates"],
+                                 divorced=divorced.oe[, "raw.rates"],
+                                 remarriage.widowed=rw.oe[, "raw.rates"],
+                                 remarriage.divorced=rd.oe[, "raw.rates"])
+    }
+
+    if(cal_freq == TRUE){
+      frequency <- data.frame(rates.by, mrg1=mrg1.freq[, "est.rates"],
+                              divorced=divorced.freq[, "est.rates"],
+                              remarriage.widowed=rw.freq[, "est.rates"],
+                              remarriage.divorced=rd.freq[, "est.rates"])
+      raw.frequency <- data.frame(rates.by, mrg1=mrg1.freq[, "raw.rates"],
+                                  divorced=divorced.freq[, "raw.rates"],
+                                  remarriage.widowed=rw.freq[, "raw.rates"],
+                                  remarriage.divorced=rd.freq[, "raw.rates"])
+    }
+
+  } else if (byvar=="ru.nosex"){
 
     agelist <- agelist %>% arrange(age, ru)
     rates.by <- data.frame(age=agelist$age, ru=agelist$ru)
@@ -3036,7 +3063,7 @@ compute.seven.covar <- function(data_oe, data_freq, param, code, plot, plot.name
                     plot.name, byvar, cal_oe, cal_freq)
   }
 
-  if (byvar!="reg.ru.nosex"&byvar!="region.nosex"&byvar!="ru.nosex"&byvar!="sex.nosex") {
+  if (byvar!="reg.ru.nosex"&byvar!="region.nosex"&byvar!="ru.nosex"&byvar!="sex.nosex"&byvar!="race.nosex") {
 
     agelist <- arrange.covar(agelist, byvar)
     agelist <- agelist %>% select(-sex) %>% distinct()
@@ -3245,6 +3272,77 @@ compute.seven.covar <- function(data_oe, data_freq, param, code, plot, plot.name
 
     agelist <- agelist %>% arrange(age, region)
     rates.by <- data.frame(age=agelist$age, region=agelist$region)
+
+    if(cal_oe == TRUE){
+
+      oe.rates.m <- data.frame(rates.by,
+                               nmNC.married=mrg1.oe[ , "est.rates"],
+                               nmC.married=nmCm.oe[ , "est.rates"],
+                               divorced=divorced.oe[ , "est.rates"],
+                               rwNC=rw.oe[ , "est.rates"],
+                               rwC=rwC.oe[ , "est.rates"],
+                               rdNC=rd.oe[ , "est.rates"],
+                               rdC=rdC.oe[ , "est.rates"],
+                               nmtoC=nmtoC.oe[ , "est.rates"],
+                               wtoC=wtoC.oe[ , "est.rates"],
+                               dtoC=dtoC.oe[ , "est.rates"],
+                               Ctonm=Ctonm.oe[ , "est.rates"],
+                               Ctow=Ctow.oe[ , "est.rates"],
+                               Ctod=Ctod.oe[ , "est.rates"])
+
+      raw.oe.rates.m <- data.frame(rates.by,
+                                   nmNC.married=mrg1.oe[ , "raw.rates"],
+                                   nmC.married=nmCm.oe[ , "raw.rates"],
+                                   divorced=divorced.oe[ , "raw.rates"],
+                                   rwNC=rw.oe[ , "raw.rates"],
+                                   rwC=rwC.oe[ , "raw.rates"],
+                                   rdNC=rd.oe[ , "raw.rates"],
+                                   rdC=rdC.oe[ , "raw.rates"],
+                                   nmtoC=nmtoC.oe[ , "raw.rates"],
+                                   wtoC=wtoC.oe[ , "raw.rates"],
+                                   dtoC=dtoC.oe[ , "raw.rates"],
+                                   Ctonm=Ctonm.oe[ , "raw.rates"],
+                                   Ctow=Ctow.oe[ , "raw.rates"],
+                                   Ctod=Ctod.oe[ , "raw.rates"])
+    }
+
+    if(cal_freq == TRUE){
+
+      frequency.m <- data.frame(rates.by,
+                                nmNC.married=mrg1.freq[ , "est.rates"],
+                                nmC.married=nmCm.freq[ , "est.rates"],
+                                divorced=divorced.freq[ , "est.rates"],
+                                rwNC=rw.freq[ , "est.rates"],
+                                rwC=rwC.freq[ , "est.rates"],
+                                rdNC=rd.freq[ , "est.rates"],
+                                rdC=rdC.freq[ , "est.rates"],
+                                nmtoC=nmtoC.freq[ , "est.rates"],
+                                wtoC=wtoC.freq[ , "est.rates"],
+                                dtoC=dtoC.freq[ , "est.rates"],
+                                Ctonm=Ctonm.freq[ , "est.rates"],
+                                Ctow=Ctow.freq[ , "est.rates"],
+                                Ctod=Ctod.freq[ , "est.rates"])
+
+      raw.frequency.m <- data.frame(rates.by,
+                                    nmNC.married=mrg1.freq[ , "raw.rates"],
+                                    nmC.married=nmCm.freq[ , "raw.rates"],
+                                    divorced=divorced.freq[ , "raw.rates"],
+                                    rwNC=rw.freq[ , "raw.rates"],
+                                    rwC=rwC.freq[ , "raw.rates"],
+                                    rdNC=rd.freq[ , "raw.rates"],
+                                    rdC=rdC.freq[ , "raw.rates"],
+                                    nmtoC=nmtoC.freq[ , "raw.rates"],
+                                    wtoC=wtoC.freq[ , "raw.rates"],
+                                    dtoC=dtoC.freq[ , "raw.rates"],
+                                    Ctonm=Ctonm.freq[ , "raw.rates"],
+                                    Ctow=Ctow.freq[ , "raw.rates"],
+                                    Ctod=Ctod.freq[ , "raw.rates"])
+    }
+
+  } else if (byvar=="race.nosex"){
+
+    agelist <- agelist %>% arrange(age, race)
+    rates.by <- data.frame(age=agelist$age, race=agelist$race)
 
     if(cal_oe == TRUE){
 
@@ -4707,6 +4805,64 @@ draw.mar4.nRate <- function(mrg1.oe, mrg1.freq, divorced.oe, divorced.freq, rw.o
       }
     }
 
+    if (byvar=="race.nosex"){
+
+      for(i in race.code){
+        r.name <- code[which(code$`Race Code` == i), 2]
+        r.code <- paste0(", ", r.name, sep="")
+        plot.name <- r.code
+
+        if(cal_oe == TRUE){
+          row.index <- 3
+          p1 <- rates.plot(mrg1.oe[which(mrg1.oe$race==i), c(1, 3:4)], nlm, nhm, "o/e rate", paste0("Figure 5.1. First marriage o/e rates", plot.name, sep=""))
+          print(p1)
+          insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+          row.index <- row.index + 22
+          p5 <- rates.plot(divorced.oe[which(divorced.oe$race==i), c(1, 3:4)], nlm, nhm, "o/e rate", paste0("Figure 6.1. Divorced o/e rates", plot.name, sep=""))
+          print(p5)
+          insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+          row.index <- row.index + 22
+          p9 <- rates.plot(rw.oe[which(rw.oe$race==i), c(1, 3:4)], nlm, nhm, "o/e rate", paste0("Figure 7.1. Widowed to remarriage o/e rates", plot.name, sep=""))
+          print(p9)
+          insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+          row.index <- row.index + 22
+          p13 <- rates.plot(rd.oe[which(rd.oe$race==i), c(1, 3:4)], nlm, nhm, "o/e rate", paste0("Figure 8.1. Divorced to remarriage o/e rates", plot.name, sep=""))
+          print(p13)
+          insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+        }
+
+        if(cal_freq == TRUE){
+          row.index <- 3
+          p3 <- rates.plot(mrg1.freq[which(mrg1.freq$race==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure 1.1. First marriage frequencies", plot.name, sep=""))
+          print(p3)
+          insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+          row.index <- row.index + 22
+          p7 <- rates.plot(divorced.freq[which(divorced.freq$race==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure 2.1. Divorced frequencies", plot.name, sep=""))
+          print(p7)
+          insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+          row.index <- row.index + 22
+          p11 <- rates.plot(rw.freq[which(rw.freq$race==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure 3.1. Widowed to remarriage frequencies", plot.name, sep=""))
+          print(p11)
+          insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+          row.index <- row.index + 22
+          p15 <- rates.plot(rd.freq[which(rd.freq$race==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure 4.1. Divorced to remarriage frequencies", plot.name, sep=""))
+          print(p15)
+          insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+        }
+
+        output.dir <- getwd()
+        plot.name <- gsub(", ", "-", plot.name)
+        saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+
+      }
+    }
+
     if (byvar=="race"){
 
       for(i in race.code){
@@ -5789,6 +5945,48 @@ draw.mar7.nRate <- function(result.list, code, nlm, nhm, title, period, plot.nam
     plot.name <- gsub(", ", "-", plot.name)
     saveWorkbook(wb, paste0(output.dir, "/", title, " Mar7 plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
 
+  } else if (byvar=="sex.nosex"){
+
+    wb <- createWorkbook()
+    s <- 1
+
+    if(cal_oe == TRUE){
+      addWorksheet(wb, "oe")
+      writeData(wb, sheet=s, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+      writeData(wb, sheet=s, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+
+      s <- s+1
+      row.index <- 3
+
+      for (k in 1:13) {
+        p1 <- rates.plot(result.list[[2*k-1]][, c(1, 2:3)], nlm, nhm, "o/e rate", paste0("Figure ", k+13, ".1. ", event.name[k], " o/e rates, males", plot.name, sep=""))
+        print(p1)
+        insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+        row.index <- row.index + 22
+      }
+
+    }
+
+    if(cal_freq == TRUE){
+      addWorksheet(wb, "freq")
+      writeData(wb, sheet=s, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+      writeData(wb, sheet=s, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+
+      row.index <- 3
+
+      for (k in 1:13) {
+        p1 <- rates.plot(result.list[[2*k]][, c(1, 2:3)], nlm, nhm, "frequency", paste0("Figure ", k, ".1. ", event.name[k], " frequencies, males", plot.name, sep=""))
+        print(p1)
+        insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+        row.index <- row.index + 22
+      }
+
+    }
+
+    output.dir <- getwd()
+    plot.name <- gsub(", ", "-", plot.name)
+    saveWorkbook(wb, paste0(output.dir, "/", title, " Mar7 plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+
   } else if (byvar=="reg.ru"){
 
     for(i in region.code){
@@ -6067,6 +6265,96 @@ draw.mar7.nRate <- function(result.list, code, nlm, nhm, title, period, plot.nam
           for (k in 1:13) {
 
             p1 <- rates.plot(result.list[[2*k]][which(result.list[[2*k]]$region==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure ", k, ".1. ", event.name[k], " frequencies", plot.name, sep=""))
+            print(p1)
+            insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+            row.index <- row.index + 22
+          }
+
+        }
+
+        output.dir <- getwd()
+        plot.name <- gsub(", ", "-", plot.name)
+        saveWorkbook(wb, paste0(output.dir, "/", title, " Mar7 plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+
+      }
+    }
+
+    if (byvar=="ru.nosex"){
+
+      ru.code <- c(1, 2)
+
+      for(i in ru.code){
+        r.name <- ifelse(i==1, "rural", "urban")
+        r.code <- paste0(", ", r.name, sep="")
+        plot.name <- r.code
+
+        if(cal_oe == TRUE){
+
+          row.index <- 3
+
+          for (k in 1:13) {
+
+            p1 <- rates.plot(result.list[[2*k-1]][which(result.list[[2*k-1]]$ru==i), c(1, 3:4)], nlm, nhm, "o/e rate", paste0("Figure ", k+13, ".1. ", event.name[k], " o/e rates", plot.name, sep=""))
+            print(p1)
+            insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+            row.index <- row.index + 22
+          }
+
+        }
+
+        if(cal_freq == TRUE){
+
+          row.index <- 3
+
+          for (k in 1:13) {
+
+            p1 <- rates.plot(result.list[[2*k]][which(result.list[[2*k]]$ru==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure ", k, ".1. ", event.name[k], " frequencies", plot.name, sep=""))
+            print(p1)
+            insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+            row.index <- row.index + 22
+          }
+
+        }
+
+        output.dir <- getwd()
+        plot.name <- gsub(", ", "-", plot.name)
+        saveWorkbook(wb, paste0(output.dir, "/", title, " Mar7 plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+
+      }
+    }
+
+    if (byvar=="race.nosex"){
+
+      for(i in race.code){
+        r.name <- code[which(code$`Race Code` == i), 2]
+        r.code <- paste0(", ", r.name, sep="")
+        plot.name <- r.code
+
+        if(cal_oe == TRUE){
+
+          row.index <- 3
+
+          for (k in 1:13) {
+
+            p1 <- rates.plot(result.list[[2*k-1]][which(result.list[[2*k-1]]$race==i), c(1, 3:4)], nlm, nhm, "o/e rate", paste0("Figure ", k+13, ".1. ", event.name[k], " o/e rates", plot.name, sep=""))
+            print(p1)
+            insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+
+            row.index <- row.index + 22
+          }
+
+        }
+
+        if(cal_freq == TRUE){
+
+          row.index <- 3
+
+          for (k in 1:13) {
+
+            p1 <- rates.plot(result.list[[2*k]][which(result.list[[2*k]]$race==i), c(1, 3:4)], nlm, nhm, "frequency", paste0("Figure ", k, ".1. ", event.name[k], " frequencies", plot.name, sep=""))
             print(p1)
             insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
 
