@@ -813,7 +813,7 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
   d0 <- subset(data, prev==status)
   d0 <- d0[which(d0$age <= nh),]
 
-  if (length(unique(d0$sex))==1){
+  if (length(unique(d0$sex))==1&substr(byvar, nchar(byvar)-5, nchar(byvar))!=".nosex"){
     byvar <- paste0(byvar, ".nosex", sep="")
   }
 
@@ -1370,7 +1370,7 @@ freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
   d0 <- d0[which(d0$age <= nh),]
 
   #check gender
-  if (length(unique(d0$sex))==1){
+  if (length(unique(d0$sex))==1&substr(byvar, nchar(byvar)-5, nchar(byvar))!=".nosex"){
     byvar <- paste0(byvar, ".nosex", sep="")
   }
 
