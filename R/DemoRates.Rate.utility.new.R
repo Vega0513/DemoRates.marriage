@@ -106,7 +106,7 @@ run.rates <- function(file=NA, csv=FALSE, para=NA, plot=FALSE, sex=TRUE, method=
     } else {code <- NA}
   }
 
-  # if nInterval is 0, then process all data at all
+  # if nInterval is 0, then process all data at once
   if (nInterval == 0 ){
     nInterval = 1e10
   }
@@ -541,6 +541,7 @@ prediction.data <- function(d0, nl, nh, byvar){
   return(pred.data)
 }
 
+# compute direct calculated oe rates: subset method
 oe.raw <- function(data, nl, nh, status, evt, nWeight){
 
   # (revised) count in weights
@@ -550,25 +551,33 @@ oe.raw <- function(data, nl, nh, status, evt, nWeight){
   data$py = data$py * data$weight
   # (revise over)
 
+  #select risk population
   d0 <- subset(data, prev==status)
   d0 <- d0[which(d0$age <= nh),]
 
-  if(nrow(d0) == 0){
+  if(nrow(d0) == 0){       #if no population, do not estimate, set all as NA
     oe <- data.frame(age=seq(nl, nh, 1), raw.rates=NA)
   } else{
+    #select objective event
     d0[which(d0$event != evt & d0$event != 0), "event"] <- 0
     d0[which(d0$event == evt), "event"] <- 1
+
     dpy <- subset(data, post == status)
     age <- data.frame(Group.1 = seq(nl, nh, 1))
+
+    #calculate total person years
     t.py <- aggregate(dpy$py, list(dpy$age), sum)
     t.py <- left_join(age, t.py, by = "Group.1")
+
+    #calculate number of events
     raw.event <- aggregate(d0$event * d0$weight, list(d0$age), sum)
     raw.event <- left_join(age, raw.event, by = "Group.1")
 
-
     if(sum(raw.event$x, na.rm = T) < 30){
+      #if number of events <30, not estimate, set all as NA
       oe <- data.frame(age=seq(nl, nh, 1), raw.rates=NA)
     } else{
+      #compute raw rates
       oe <- data.frame(raw.event$Group.1, raw.event$x/t.py$x)
       names(oe) <- c("age", "raw.rates")
       oe[,2] <- round(oe[,2], 10)
@@ -579,6 +588,7 @@ oe.raw <- function(data, nl, nh, status, evt, nWeight){
   return(oe)
 }
 
+# compute estimated oe rates: subset method
 oe.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
 
   # (revised) count in weights
@@ -588,38 +598,37 @@ oe.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
   data$py = data$py * data$weight
   # (revise over)
 
+  #select risk population
   d0 <- subset(data, prev==status)
   d0 <- d0[which(d0$age <= nh),]
 
-  if(nrow(d0) == 0){
+  if(nrow(d0) == 0){       #if no population, do not estimate, set all as NA
     oe <- data.frame(age=seq(nl, nh, 1), est.rates=NA)
   } else{
+    #create predict data
     minage <- min(d0$age)
     pred.data <- data.frame(matrix(NA, nrow = nh-minage+1, ncol = ncol(d0)))
     names(pred.data) <- names(d0)
     pred.data$age <- seq(minage, nh, 1)
     pred.data <- as.data.frame(lapply(pred.data,as.numeric))
+    #select objective event
     d0[which(d0$event != evt & d0$event != 0), "event"] <- 0
     d0[which(d0$event == evt), "event"] <- 1
     raw.event <- aggregate(d0$event* d0$weight, list(d0$age), sum)
 
-
     if(sum(raw.event$x, na.rm = T) < 30){
+      #if number of events <30, not estimate, set all as NA
       oe <- data.frame(age=seq(nl, nh, 1), est.rates=NA)
     } else{
 
       if (mfp==T){
+        # use mfp package
         model <- mfp(event ~ fp(age), data=d0, family=poisson)
         pred <- predict(model, pred.data, type="response")
       } else {
-        # (revised)
-        # if (nWeight==0){
-        #   pred <- fpPoisson("event", "age", weights = NA, data = d0, pred.data = pred.data)
-        # } else {
-        #   pred <- fpPoisson("event", "age", weights = "weight", data = d0, pred.data = pred.data)
-        # }
+        # use fp Poisson defined by DemoRates
         pred <- fpPoisson("event", "age", weights = "py", data = d0, pred.data = pred.data)
-        # (revise over)
+        # to be improved by ZJN's team
       }
 
       oe <- data.frame(pred.data$age, pred*12)
@@ -632,6 +641,7 @@ oe.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
   return(oe)
 }
 
+# compute direct calculated freq rates: subset method
 freq.raw <- function(data, nl, nh, evt, nWeight){
 
   # (revised) count in weights
@@ -665,6 +675,7 @@ freq.raw <- function(data, nl, nh, evt, nWeight){
   return(freq)
 }
 
+# compute estimated freq rates: subset method
 freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
 
   # (revised) count in weights
@@ -716,6 +727,7 @@ freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
   return(freq)
 }
 
+# compute direct calculated freq rates for by marital fertility: subset method
 freqM.raw <- function(data, nl, nh, status, evt, nWeight){
 
   # (revised) count in weights
@@ -747,6 +759,7 @@ freqM.raw <- function(data, nl, nh, status, evt, nWeight){
   return(freq)
 }
 
+# compute estimated freq rates for by marital fertility: subset method
 freqM.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
 
   # (revised) count in weights
@@ -800,6 +813,7 @@ freqM.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
   return(freq)
 }
 
+# compute direct calculated and estimated oe rates: co-variant method
 oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
 
   # (revised) count in weights
@@ -1357,6 +1371,7 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
   return(oe)
 }
 
+# compute direct calculated and estimated freq rates: co-variant method
 freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
 
   # (revised)count in weights

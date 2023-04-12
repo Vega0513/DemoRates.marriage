@@ -19,7 +19,6 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
   nrate <- as.numeric(param$nRate)
   nWeight <- as.numeric(param$nWeight)
 
-
   #region list
   if (nRegion>1){
     region_tmp<- code %>% select(`Region Code`, `Region Name`)
@@ -36,7 +35,7 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
     race_list <- as.list(race_tmp)
   }
 
-  #Set table and graph name surfix
+  #Set output table and graph name surfix
   if(nRegion == 1 & nRace == 1 & nrj == 1 & edu == 0){
     combined.name <- ""
   } else {
@@ -46,7 +45,9 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
   #prepare oe & freq data
   #change wide data into long data (1 person month/row)
   data_oe <- data_freq <- NA
+  #set variables indicating whether to calculate oe or frequency
   cal_freq <- cal_oe <- F
+
   if (nrate==1){
     cal_freq <- cal_oe <- T
     data_oe <- data_freq <- data.prepare.mar(data, marital, t1Month, t2Month, nlm, 95)
@@ -59,7 +60,8 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
   }
 
 
-  #estimate by what? according to parameters
+  #estimate by what variable? according to parameters
+  #Remark: for subset method, always consider sex
   #overall rates, not by any factor
   if (nRegion == 1 & nrj == 1 & nRace == 1 & edu == 0) {subset <- "overall"}
   #by rural/urban
@@ -91,6 +93,7 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
   if (marital == 4){
 
     #generate pop table: # of risk population and # of events
+    #used to check direct calculation results
     if (cal_oe==T){
       pop <- pop.count.four.sex(data_oe, nlm, 95)
       write.pop.four.sex(pop, param, name = combined.name)
@@ -111,23 +114,27 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
     write.rates.four.sex(combined$oe.rates, combined$frequency, param, combined.name,  paste0(method, " estimate", sep=""))
     write.rates.four.sex(combined$raw.oe.rates, combined$raw.frequency, param, combined.name, "Direct calculate")
 
-    #generate and output overall total rates and mean ages
+    # if do not estimate by any variable,
+    # generate and output overall total rates and mean ages
     if (subset=="overall"){
       total.rates <- combined$total.rates
       mean.age <- combined$mean.age
       write.total.four.subset(total.rates, mean.age, param, combined.name)
     }
 
-    #by rural/urban, region, race, edu
+    # if by rural/urban, region, race, edu
     if (subset %in% c("ru", "region", "race", "edu")){
 
-      #overall total rates & mean ages
+      #overall total rates
       total.rates <- combined$total.rates
-      total.rates <- rbind(NA, total.rates)       #empty row for subset names
+      #add an empty row to indicate variable name when output total rates file
+      total.rates <- rbind(NA, total.rates)
+      #overall mean ages
       mean.age <- combined$mean.age
-      mean.age <- rbind(NA, mean.age)             #empty row for subset names
+      #add an empty row to indicate variable name when output total rates file
+      mean.age <- rbind(NA, mean.age)
 
-      #define row names
+      #define general row names
       rowname <- c("Total rates - All combined",
                    "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
       total.rates <- cbind(rowname, total.rates)
@@ -145,55 +152,73 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
         #code for output surfix
         i.code <- paste0(", ", i.name, sep="")
 
+        ## Set rates as NA first, change later if cal_oe/cal_freq==T
         data_oe.i <- data_freq.i <- NA
 
         if (cal_oe==T){
-          #Subset data according to the variable
+          #Subset oe data according to the variable
           data_oe.i <- data_oe[which(eval(parse(text=paste("data_oe$",subset,sep="")))==i),]
 
+          #generate pop table: # of risk population and # of events
           pop <- pop.count.four.sex(data_oe.i, nlm, 95)
           write.pop.four.sex(pop, param, i.code)
         }
 
         if (cal_freq==T){
 
-          #Subset data according to the variable
+          #Subset freq data according to the variable
           data_freq.i <- data_freq[which(eval(parse(text=paste("data_freq$",subset,sep="")))==i),]
 
           if (cal_oe==F){
+            # if do not estimate by any variable,
+            # generate and output overall total rates and mean ages
             pop <- pop.count.four.sex(data_freq.i, nlm, 95)
             write.pop.four.sex(pop, param, i.code)
           }
 
         }
 
+        #estimate oe/freq rates based on subset data
         i <- compute.four(data_oe.i, data_freq.i, plot=plot, param=param, plot.name=i.code, method, mfp)
+        #output by variable results
         write.rates.four.sex(i$oe.rates, i$frequency, param, i.code, paste0(method, " estimate", sep=""))
         write.rates.four.sex(i$raw.oe.rates, i$raw.frequency, param, i.code, "Direct calculate")
 
+        #define subset row names
         rowname <- c(i.name, "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
+        #add an empty row for variable name
         i$total.rates <- rbind(NA, i$total.rates)
+        #add row names to total rates
         i$total.rates <- cbind(rowname, i$total.rates)
+        #add subset total rates to general total rates
         total.rates <- rbind(total.rates, i$total.rates)
+        #add an empty row for variable name
         i$mean.age <- rbind(NA, i$mean.age)
+        #add row names to mean ages
         i$mean.age <- cbind(rowname, i$mean.age)
+        #add subset mean age to general mean age
         mean.age <- rbind(mean.age, i$mean.age)
 
       }
 
+      #output total rates file
       write.total.four.subset(total.rates, mean.age, param, paste0("-all ", subset, sep=""))
 
     }
 
-    #by region and rural/urban
+    #special case: by region and rural/urban
     if (subset=="reg.ru"){
 
       #overall total rates
       total.rates <- combined$total.rates
+      #add an empty row to indicate variable name when output total rates file
       total.rates <- rbind(NA, total.rates)
+      #overall mean ages
       mean.age <- combined$mean.age
+      #add an empty row to indicate variable name when output total rates file
       mean.age <- rbind(NA, mean.age)
 
+      #define general row names
       rowname <- c("Total rates - All region combined",
                    "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
       total.rates <- cbind(rowname, total.rates)
@@ -201,23 +226,31 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
                    "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
       mean.age <- cbind(rowname, mean.age)
 
+      ## Set rates as NA first, change later if cal_oe/cal_freq==T
       data_oe.i <- data_oe.ru <- data_oe.ub <- NA
       data_freq.i <- data_freq.ru <- data_freq.ub <- NA
 
       #for each region
       for(k in 1:length(region_list[[1]])){
+        #code
         i <- region_list[[1]][k]
+        #name
         i.name <- region_list[[2]][k]
 
+        #surfix
         i.code <- paste0(", ", i.name, sep="")
         i.code1 <- paste0(", ", i.name, "-rural", sep="")
         i.code2 <- paste0(", ", i.name, "-urban", sep="")
 
         if (cal_oe==T){
+          #subset each region oe data
           data_oe.i <- data_oe[which(data_oe$region==i),]
+          #subset each region rural oe data
           data_oe.ru <- data_oe[which(data_oe$ru == 1&data_oe$region==i),]
+          #subset each region urban oe data
           data_oe.ub <- data_oe[which(data_oe$ru == 2&data_oe$region==i),]
 
+          #generate each region, each region rural/urban pop tables
           pop.i <- pop.count.four.sex(data_oe.i, nlm, 95)
           pop.ru <- pop.count.four.sex(data_oe.ru, nlm, 95)
           pop.ub <- pop.count.four.sex(data_oe.ub, nlm, 95)
@@ -229,12 +262,17 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
         }
 
         if (cal_freq==T){
+
+          #subset each region freq data
           data_freq.i <- data_freq[which(data_freq$region==i),]
+          #subset each region rural freq data
           data_freq.ru <- data_freq[which(data_freq$ru == 1&data_freq$region==i),]
+          #subset each region urban freq data
           data_freq.ub <- data_freq[which(data_freq$ru == 2&data_freq$region==i),]
 
           if (cal_oe==F){
 
+            #generate pop table if did not generate in previous step
             pop.i <- pop.count.four.sex(data_freq.i, nlm, 95)
             pop.ru <- pop.count.four.sex(data_freq.ru, nlm, 95)
             pop.ub <- pop.count.four.sex(data_freq.ub, nlm, 95)
@@ -246,17 +284,22 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
           }
         }
 
+        #estimate rates for ith region
         region <- compute.four(data_oe.i, data_freq.i, plot=plot, param=param, plot.name=i.code, method, mfp)
 
+        #estimate rates for ith region rural
         region_ru <- compute.four(data_oe.ru, data_freq.ru, plot=plot, param=param, plot.name=i.code1, method, mfp)
+        #estimate rates for ith region urban
         region_ub <- compute.four(data_oe.ub, data_freq.ub, plot=plot, param=param, plot.name=i.code2, method, mfp)
 
+        #output rates
         write.rates.four.sex(region_ru$oe.rates, region_ru$frequency, param, i.code1,  paste0(method, " estimate", sep=""))
         write.rates.four.sex(region_ru$raw.oe.rates, region_ru$raw.frequency, param, i.code1, "Direct calculate")
 
         write.rates.four.sex(region_ub$oe.rates, region_ub$frequency, param, i.code2,  paste0(method, " estimate", sep=""))
         write.rates.four.sex(region_ub$raw.oe.rates, region_ub$raw.frequency, param, i.code2, "Direct calculate")
 
+        #format total rates and mean age results
         total.rates_re <- rbind(NA, region$total.rates, NA, region_ru$total.rates, NA, region_ub$total.rates)
         mean.age_re <- rbind(NA, region$mean.age, NA, region_ru$mean.age, NA, region_ub$mean.age)
         rowname <- c("Total rates - Rural/urban Combined",
@@ -314,13 +357,16 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
     #by rural/urban, region, race, edu
     if(subset %in% c("ru", "region", "race", "edu")){
 
-      #overall total rates & mean ages
+      #overall total rates
       total.rates <- combined$total.rates
+      #add an empty row to indicate variable name when output total rates file
       total.rates <- rbind(NA, total.rates)
+      #overall mean ages
       mean.age <- combined$mean.age
+      #add an empty row to indicate variable name when output total rates file
       mean.age <- rbind(NA, mean.age)
 
-      #define row names
+      #define general row names
       rowname <- c("Total rates - All region combined",
                    "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
       total.rates <- cbind(rowname, total.rates)
@@ -338,13 +384,15 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
         #code for output surfix
         i.code <- paste0(", ", i.name, sep="")
 
+        ## Set rates as NA first, change later if cal_oe/cal_freq==T
         data_oe.i <- data_freq.i <- NA
 
         if (cal_oe==T){
 
-          #Subset data according to the variable
+          #Subset oe data according to the variable
           data_oe.i <- data_oe[which(eval(parse(text=paste("data_oe$",subset,sep="")))==i),]
 
+          #generate pop table by variable
           pop <- pop.count.seven.sex(data_oe.i, nlm, 95)
           write.pop.seven.sex(pop, param, i.code)
 
@@ -352,30 +400,42 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
 
         if (cal_freq==T){
 
-          #Subset data according to the variable
+          #Subset data freq according to the variable
           data_freq.i <- data_freq[which(eval(parse(text=paste("data_freq$",subset,sep="")))==i),]
 
           if (cal_oe==F){
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
             pop <- pop.count.seven.sex(data_freq.i, nlm, 95)
             write.pop.seven.sex(pop, param, i.code)
           }
 
         }
 
+        #estimate subset rates
         i <- compute.seven(data_oe.i, data_freq.i, plot=plot, param=param, plot.name=i.code, method, mfp)
+        #output subset rates
         write.rates.seven.sex(i$male.oe, i$female.oe, i$male.freq, i$female.freq, param, i.code,  paste0(method, " estimate", sep=""))
         write.rates.seven.sex(i$raw.male.oe, i$raw.female.oe, i$raw.male.freq, i$raw.female.freq, param, i.code, "Direct calculate")
 
+        #define subset row names
         rowname <- c(i.name, "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
+        #add an empty row for variable name
         i$total.rates <- rbind(NA, i$total.rates)
+        #add row names to total rates
         i$total.rates <- cbind(rowname, i$total.rates)
+        #add subset total rates to general total rates
         total.rates <- rbind(total.rates, i$total.rates)
+        #add an empty row for variable name
         i$mean.age <- rbind(NA, i$mean.age)
+        #add row names to mean ages
         i$mean.age <- cbind(rowname, i$mean.age)
+        #add subset mean age to general mean age
         mean.age <- rbind(mean.age, i$mean.age)
 
       }
 
+      #output total rates
       write.total.seven.subset(total.rates, mean.age, param, paste0("-all ", subset, sep=""))
 
     }
@@ -385,10 +445,14 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
 
       #overall total rates
       total.rates <- combined$total.rates
+      #add an empty row to indicate variable name when output total rates file
       total.rates <- rbind(NA, total.rates)
+      #overall mean ages
       mean.age <- combined$mean.age
+      #add an empty row to indicate variable name when output total rates file
       mean.age <- rbind(NA, mean.age)
 
+      #define general row names
       rowname <- c("Total rates - All region combined",
                    "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
       total.rates <- cbind(rowname, total.rates)
@@ -396,23 +460,31 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
                    "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
       mean.age <- cbind(rowname, mean.age)
 
+      ## Set rates as NA first, change later if cal_oe/cal_freq==T
       data_oe.i <- data_oe.ru <- data_oe.ub <- NA
       data_freq.i <- data_freq.ru <- data_freq.ub <- NA
 
       #for each region
       for(k in 1:length(region_list[[1]])){
+        #code
         i <- region_list[[1]][k]
+        #name
         i.name <- region_list[[2]][k]
 
+        #surfix for each region, region rural, region urban
         i.code <- paste0(", ", i.name, sep="")
         i.code1 <- paste0(", ", i.name, "-rural", sep="")
         i.code2 <- paste0(", ", i.name, "-urban", sep="")
 
         if (cal_oe==T){
+          #subset each region oe data
           data_oe.i <- data_oe[which(data_oe$region==i),]
+          #subset each region rural oe data
           data_oe.ru <- data_oe[which(data_oe$ru == 1&data_oe$region==i),]
+          #subset each region urban oe data
           data_oe.ub <- data_oe[which(data_oe$ru == 2&data_oe$region==i),]
 
+          #generate each region, each region rural/urban pop tables
           pop.i <- pop.count.seven.sex(data_oe.i, nlm, 95)
           pop.ru <- pop.count.seven.sex(data_oe.ru, nlm, 95)
           pop.ub <- pop.count.seven.sex(data_oe.ub, nlm, 95)
@@ -423,12 +495,16 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
         }
 
         if (cal_freq==T){
+          #subset each region freq data
           data_freq.i <- data_freq[which(data_freq$region==i),]
+          #subset each region rural freq data
           data_freq.ru <- data_freq[which(data_freq$ru == 1&data_freq$region==i),]
+          #subset each region urban freq data
           data_freq.ub <- data_freq[which(data_freq$ru == 2&data_freq$region==i),]
 
           if (cal_oe==F){
 
+            #generate pop table if did not generate in previous step
             pop.i <- pop.count.seven.sex(data_freq.i, nlm, 95)
             pop.ru <- pop.count.seven.sex(data_freq.ru, nlm, 95)
             pop.ub <- pop.count.seven.sex(data_freq.ub, nlm, 95)
@@ -440,17 +516,22 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
           }
         }
 
+        #estimate ith region rates
         region <- compute.seven(data_oe.i, data_freq.i, plot=plot, param=param, plot.name=i.code, method, mfp)
 
+        #estimate ith region rural rates
         region_ru <- compute.seven(data_oe.ru, data_freq.ru, plot=plot, param=param, plot.name=i.code1, method, mfp)
+        #estimate ith region urban rates
         region_ub <- compute.seven(data_oe.ub, data_freq.ub, plot=plot, param=param, plot.name=i.code2, method, mfp)
 
+        #output rates
         write.rates.seven.sex(region_ru$oe.rates, region_ru$frequency, param, i.code1,  paste0(method, " estimate", sep=""))
         write.rates.seven.sex(region_ru$raw.oe.rates, region_ru$raw.frequency, param, i.code1, "Direct calculate")
 
         write.rates.seven.sex(region_ub$oe.rates, region_ub$frequency, param, i.code2,  paste0(method, " estimate", sep=""))
         write.rates.seven.sex(region_ub$raw.oe.rates, region_ub$raw.frequency, param, i.code2, "Direct calculate")
 
+        #format total rates output
         total.rates_re <- rbind(NA, region$total.rates, NA, region_ru$total.rates, NA, region_ub$total.rates)
         mean.age_re <- rbind(NA, region$mean.age, NA, region_ru$mean.age, NA, region_ub$mean.age)
         rowname <- c("Total rates - Rural/urban Combined",
@@ -466,13 +547,15 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
         mean.age_re <- cbind(rowname, mean.age_re)
         mean.age <- rbind(mean.age, mean.age_re)
       }
+
+      #output total rates file
       write.total.seven.subset(total.rates, mean.age, param, "-region by residence")
     }
 
   }
 }
 
-#### The main function for marriage estimation with covariant method ####
+#### The main function for marriage estimation with co-variant method ####
 run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
   #### Parameters loading and data preparing ####
@@ -506,7 +589,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
     race_list <- as.list(race_tmp)
   }
 
-  #Set table and graph name surfix
+  #Set output table and graph name surfix
   if(nRegion == 1 & nRace == 1 & nrj == 1 & edu == 0){
     combined.name <- ""
   } else {
@@ -516,7 +599,9 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
   #prepare oe & freq data
   #change wide data into long data (1 person month/row)
   data_oe <- data_freq <- NA
+  #set variables indicating whether to calculate oe or frequency
   cal_freq <- cal_oe <- F
+
   if (nrate==1){
     cal_freq <- cal_oe <- T
     data_oe <- data_freq <- data.prepare.mar(data, marital, t1Month, t2Month, nlm, 95)
@@ -528,11 +613,13 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
     data_freq <- data.prepare.mar(data, marital, t1Month, t2Month, nlm, 95)
   }
 
+  ## Common settings for all cases ##
 
-  ## define "byvar" according to parameters
+  ##estimate by what variable? define "byvar" according to parameters
+  #Remark: for co-variant method, can choose whether consider sex or not
   #sex.nosex -- general estimation, not by any factor
   if (nRegion == 1 & nrj == 1 & nRace == 1 & edu == 0 & sex == F) {byvar<- "sex.nosex"}
-  #byvar=NA, only by gender
+  #sex, only by gender
   if (nRegion == 1 & nrj == 1 & nRace == 1 & edu == 0 & sex == T) {byvar<- "sex"}
   #region.nosex -- only by region
   if (nRegion > 1 & nRegion <= 100 & sex==F & nrj == 1 & nRace == 1 & edu == 0) {byvar<- "region.nosex"}
@@ -553,16 +640,14 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
   #reg.ru -- by region, rural/urban & sex
   if (nrj==2 & nRegion > 1 & nRegion <= 100 & sex==T & nRace == 1 & edu == 0) {byvar<- "reg.ru"}
 
-
-  ## Common settings for all cases ##
-
-  #set row names for final total rates output
+  #set row names for final total rates output: same for all cases
   rowname <- c("Direct calculate", "Poisson estimate", "Difference%")
 
   #### 4 marital status results ####
   if(marital == 4){
 
-    #estimated oe, raw oe, estimated freq, raw freq
+    #estimated oe, raw oe, estimated freq, raw freq:
+    #The result is for all cases
     est.covar <- compute.four.covar(data_oe, data_freq, param, code, plot, combined.name, byvar, mfp)
 
     ## Set rates as NA first, change later if cal_oe/cal_freq==T
@@ -680,12 +765,15 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         if (cal_oe==T){
 
+          #generate pop table: # of risk population and # of events
           pop <- pop.count.four(data_oe[which(eval(parse(text=paste("data_oe$",var,sep="")))==i),], nlm, 95, sex)
           write.pop.four(pop, param, i.code, sex)
 
+          #extract estimated & direct calculated oe rates from estimation result
           oe.rates <- est.covar$oe.rates
-          oe.rates <- oe.rates[which(eval(parse(text = paste("oe.rates$",var,sep=""))) == i), -which(names(oe.rates)==var)] %>% arrange(age)
           raw.oe.rates <- est.covar$raw.oe.rates
+          #keep oe rates by variable
+          oe.rates <- oe.rates[which(eval(parse(text = paste("oe.rates$",var,sep=""))) == i), -which(names(oe.rates)==var)] %>% arrange(age)
           raw.oe.rates <- raw.oe.rates[which(eval(parse(text = paste("raw.oe.rates$",var,sep=""))) == i), -which(names(raw.oe.rates)==var)] %>% arrange(age)
 
         }
@@ -694,14 +782,18 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
           if (cal_oe==F){
 
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
             pop <- pop.count.four(data_freq[which(eval(parse(text=paste("data_freq$",var,sep="")))==i),], nlm, 95, sex)
             write.pop.four(pop, param, i.code, sex)
 
           }
 
+          #extract estimated & direct calculated freq rates from estimation result
           frequency <- est.covar$frequency
-          frequency <- frequency[which(eval(parse(text = paste("frequency$",var,sep=""))) == i), -which(names(frequency)==var)] %>% arrange(age)
           raw.frequency <- est.covar$raw.frequency
+          #keep freq rates by variable
+          frequency <- frequency[which(eval(parse(text = paste("frequency$",var,sep=""))) == i), -which(names(frequency)==var)] %>% arrange(age)
           raw.frequency <- raw.frequency[which(eval(parse(text = paste("raw.frequency$",var,sep=""))) == i), -which(names(raw.frequency)==var)] %>% arrange(age)
 
           #Calculate estimated total rates and mean age based on estimated freq.
@@ -729,11 +821,13 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         }
 
+        #output rates
         write.rates.four(oe.rates, frequency, param, i.code, "Poisson estimate", sex)
         write.rates.four(raw.oe.rates, raw.frequency, param, i.code, "Direct calculate", sex)
 
       }
 
+      #output total rates
       write.total.four(total.rates, mean.age, param, paste0("-by ", var, sep=""), sex)
 
     }
@@ -741,17 +835,24 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
     #Case region.ru & region.ru.nosex
     if(byvar=="region.ru"|byvar=="region.ru.nosex"){
 
+      #for each region
       for(k in 1:length(region_list[[1]])){
+        #code
         i <- region_list[[1]][k]
+        #name
         i.name <- region_list[[2]][k]
+        #surfix
         i.code <- paste0(", ", i.name, sep="")
 
         if (cal_oe==T){
+
+          #generate pop table: # of risk population and # of events
           pop <- pop.count.four(data_oe[which(data_oe$region==i&data_oe$ru==1),], nlm, 95, sex)
           write.pop.four(pop, param, paste0(i.code, "-rural"), sex)
           pop <- pop.count.four(data_oe[which(data_oe$region==i&data_oe$ru==2),], nlm, 95, sex)
           write.pop.four(pop, param, paste0(i.code, "-urban"), sex)
 
+          #extract estimated & direct calculated oe rates from estimation result
           oe.rates.ru <- est.covar$oe.rates %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
           oe.rates.ub <- est.covar$oe.rates %>% filter(region == i&ru==2) %>% select(-region, -ru) %>% arrange(age)
           raw.oe.rates.ru <- est.covar$raw.oe.rates %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
@@ -762,12 +863,16 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
         if (cal_freq==T){
 
           if (cal_oe==F){
+
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
             pop <- pop.count.four(data_freq[which(data_freq$region==i&data_freq$ru==1),], nlm, 95, sex)
             write.pop.four(pop, param, paste0(i.code, "-rural"), sex)
             pop <- pop.count.four(data_freq[which(data_freq$region==i&data_freq$ru==2),], nlm, 95, sex)
             write.pop.four(pop, param, paste0(i.code, "-urban"), sex)
           }
 
+          #extract estimated & direct calculated freq rates from estimation result
           frequency.ru <- est.covar$frequency %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
           frequency.ub <- est.covar$frequency %>% filter(region == i&ru==2) %>% select(-region, -ru) %>% arrange(age)
           raw.frequency.ru <- est.covar$raw.frequency %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
@@ -797,6 +902,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
           raw.total.rates.ub <- raw.freq.ub$total.rates
           raw.mean.age.ub <- raw.freq.ub$mean.age
 
+          #format total rates and mean ages
           i.total.rates.ru <- data.frame(i.name, raw.total.rates.ru[1], poi.total.rates.ru[1], (poi.total.rates.ru[1]-raw.total.rates.ru[1])/raw.total.rates.ru[1],
                                          raw.total.rates.ru[2], poi.total.rates.ru[2], (poi.total.rates.ru[2]-raw.total.rates.ru[2])/raw.total.rates.ru[2],
                                          raw.total.rates.ru[3], poi.total.rates.ru[3], (poi.total.rates.ru[3]-raw.total.rates.ru[3])/raw.total.rates.ru[3])
@@ -822,6 +928,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         }
 
+        #output rates
         write.rates.four(oe.rates.ru, frequency.ru, param, paste0(i.code, "-rural"), "Poisson estimate", sex)
         write.rates.four(oe.rates.ub, frequency.ub, param, paste0(i.code, "-urban"), "Poisson estimate", sex)
         write.rates.four(raw.oe.rates.ru, raw.frequency.ru, param, paste0(i.code, "-rural"), "Direct calculate", sex)
@@ -829,6 +936,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
       }
 
+      #output total rates
       write.total.four.covar(total.rates.ru, total.rates.ub, mean.age.ru, mean.age.ub, param, "-region by residence", sex)
 
     }
@@ -840,6 +948,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
   if(marital == 7){
 
     #estimated oe, raw oe, estimated freq, raw freq
+    #This results is for all cases
     est.covar <- compute.seven.covar(data_oe, data_freq, param, code, plot, plot.name=combined.name, byvar, mfp)
 
     ## Set rates as NA first, change later if cal_oe/cal_freq==T
@@ -883,10 +992,11 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
     if (byvar=="sex.nosex") {
 
       if (cal_oe==T){
-
+        #generate pop table: # of risk population and # of events
         pop <- pop.count.seven.nosex(data_oe, nlm, 95)
         write.pop.seven.nosex(pop, param, name = ", all")
 
+        #extract estimated & direct calculated oe rates from estimation result
         oe.rates <- est.covar$oe.rates.m %>% arrange(age)
         raw.oe.rates <- est.covar$raw.oe.rates.m %>% arrange(age)
 
@@ -901,7 +1011,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
           write.pop.seven.nosex(pop, param, name =  ", all")
         }
 
-        #extract estimated freq and raw freq
+        #extract estimated & direct calculated freq rates from estimation result
         frequency <- est.covar$frequency.m %>% arrange(age)
         raw.frequency <- est.covar$raw.frequency.m %>% arrange(age)
 
@@ -924,6 +1034,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
         #replace Inf or NaN rates into NA.
         total.rates <- do.call(data.frame, lapply(total.rates, function(x) replace(x, is.infinite(x), NA)))
 
+        #output total rates and mean ages
         write.total.seven.nosex(total.rates, mean.age, param, combined.name)
 
       }
@@ -940,9 +1051,11 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
       if (cal_oe==T){
 
+        #generate pop table: # of risk population and # of events
         pop <- pop.count.seven.sex(data_oe, nlm, 95)
         write.pop.seven.sex(pop, param, name = ", all")
 
+        #extract estimated & direct calculated oe rates from estimation result
         oe.rates.m <- est.covar$oe.rates.m %>% arrange(age)
         oe.rates.f <- est.covar$oe.rates.f %>% arrange(age)
         raw.oe.rates.m <- est.covar$raw.oe.rates.m %>% arrange(age)
@@ -959,7 +1072,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
           write.pop.seven.sex(pop, param, name =  ", all")
         }
 
-        #extract estimated freq and raw freq
+        #extract estimated & direct calculated freq rates from estimation result
         frequency.m <- est.covar$frequency.m %>% arrange(age)
         frequency.f <- est.covar$frequency.f %>% arrange(age)
         raw.frequency.m <- est.covar$raw.frequency.m %>% arrange(age)
@@ -1027,16 +1140,19 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         if (cal_oe==T){
 
+          #generate pop table: # of risk population and # of events
           pop <- pop.count.seven.sex(data_oe[which(eval(parse(text=paste("data_oe$",var,sep="")))==i),], nlm, 95)
           write.pop.seven.sex(pop, param, i.code)
 
+          #extract estimated & direct calculated oe rates from estimation result
           oe.rates.m <- est.covar$oe.rates.m
-          oe.rates.m <- oe.rates.m[which(eval(parse(text = paste("oe.rates.m$",var,sep=""))) == i), -which(names(oe.rates.m)==var)] %>% arrange(age)
           oe.rates.f <- est.covar$oe.rates.f
-          oe.rates.f <- oe.rates.f[which(eval(parse(text = paste("oe.rates.f$",var,sep=""))) == i), -which(names(oe.rates.f)==var)] %>% arrange(age)
           raw.oe.rates.m <- est.covar$raw.oe.rates.m
-          raw.oe.rates.m <- raw.oe.rates.m[which(eval(parse(text = paste("raw.oe.rates.m$",var,sep=""))) == i), -which(names(raw.oe.rates.m)==var)] %>% arrange(age)
           raw.oe.rates.f <- est.covar$raw.oe.rates.f
+          #keep oe rates by variable
+          oe.rates.m <- oe.rates.m[which(eval(parse(text = paste("oe.rates.m$",var,sep=""))) == i), -which(names(oe.rates.m)==var)] %>% arrange(age)
+          oe.rates.f <- oe.rates.f[which(eval(parse(text = paste("oe.rates.f$",var,sep=""))) == i), -which(names(oe.rates.f)==var)] %>% arrange(age)
+          raw.oe.rates.m <- raw.oe.rates.m[which(eval(parse(text = paste("raw.oe.rates.m$",var,sep=""))) == i), -which(names(raw.oe.rates.m)==var)] %>% arrange(age)
           raw.oe.rates.f <- raw.oe.rates.f[which(eval(parse(text = paste("raw.oe.rates.f$",var,sep=""))) == i), -which(names(raw.oe.rates.f)==var)] %>% arrange(age)
 
         }
@@ -1045,18 +1161,22 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
           if (cal_oe==F){
 
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
             pop <- pop.count.seven.sex(data_freq[which(eval(parse(text=paste("data_freq$",var,sep="")))==i),], nlm, 95)
             write.pop.seven.sex(pop, param, i.code)
 
           }
 
+          #extract estimated & direct calculated freq rates from estimation result
           frequency.m <- est.covar$frequency.m
-          frequency.m <- frequency.m[which(eval(parse(text = paste("frequency.m$",var,sep=""))) == i), -which(names(frequency.m)==var)] %>% arrange(age)
           frequency.f <- est.covar$frequency.f
-          frequency.f <- frequency.f[which(eval(parse(text = paste("frequency.f$",var,sep=""))) == i), -which(names(frequency.f)==var)] %>% arrange(age)
           raw.frequency.m <- est.covar$raw.frequency.m
-          raw.frequency.m <- raw.frequency.m[which(eval(parse(text = paste("raw.frequency.m$",var,sep=""))) == i), -which(names(raw.frequency.m)==var)] %>% arrange(age)
           raw.frequency.f <- est.covar$raw.frequency.f
+          #keep freq rates by variable
+          frequency.m <- frequency.m[which(eval(parse(text = paste("frequency.m$",var,sep=""))) == i), -which(names(frequency.m)==var)] %>% arrange(age)
+          frequency.f <- frequency.f[which(eval(parse(text = paste("frequency.f$",var,sep=""))) == i), -which(names(frequency.f)==var)] %>% arrange(age)
+          raw.frequency.m <- raw.frequency.m[which(eval(parse(text = paste("raw.frequency.m$",var,sep=""))) == i), -which(names(raw.frequency.m)==var)] %>% arrange(age)
           raw.frequency.f <- raw.frequency.f[which(eval(parse(text = paste("raw.frequency.f$",var,sep=""))) == i), -which(names(raw.frequency.f)==var)] %>% arrange(age)
 
           #Calculate estimated total rates and mean age based on estimated freq.
@@ -1086,16 +1206,18 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         }
 
+        #output rates
         write.rates.seven.sex(oe.rates.m, oe.rates.f, frequency.m, frequency.f, param, i.code, "Poisson estimate")
         write.rates.seven.sex(raw.oe.rates.m, raw.oe.rates.f, raw.frequency.m, raw.frequency.f, param, i.code, "Direct calculate")
 
       }
 
+      #output total rates
       write.total.seven.sex(total.rates, mean.age, param, paste0("-by ", var, sep=""))
 
     }
 
-    #Case one covariant & no sex
+    #Case one co-variant & no sex
     if (byvar=="region.nosex"|byvar=="ru.nosex"|byvar=="race.nosex"){
 
       #define code list & varable name
@@ -1124,9 +1246,11 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         if (cal_oe==T){
 
+          #generate pop table: # of risk population and # of events
           pop <- pop.count.seven.nosex(data_oe[which(eval(parse(text=paste("data_oe$",var,sep="")))==i),], nlm, 95)
           write.pop.seven.nosex(pop, param, i.code)
 
+          #extract estimated & direct calculated oe rates from estimation result
           oe.rates <- est.covar$oe.rates.m
           oe.rates <- oe.rates[which(eval(parse(text = paste("oe.rates$",var,sep=""))) == i), -which(names(oe.rates)==var)] %>% arrange(age)
           raw.oe.rates <- est.covar$raw.oe.rates.m
@@ -1138,11 +1262,14 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
           if (cal_oe==F){
 
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
             pop <- pop.count.seven.nosex(data_freq[which(eval(parse(text=paste("data_freq$",var,sep="")))==i),], nlm, 95)
             write.pop.seven.nosex(pop, param, i.code)
 
           }
 
+          #extract estimated & direct calculated freq rates from estimation result
           frequency <- est.covar$frequency.m
           frequency <- frequency[which(eval(parse(text = paste("frequency$",var,sep=""))) == i), -which(names(frequency)==var)] %>% arrange(age)
           raw.frequency <- est.covar$raw.frequency.m
@@ -1173,11 +1300,13 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 
         }
 
+        #output rates
         write.rates.seven.nosex(oe.rates, frequency, param, i.code, "Poisson estimate")
         write.rates.seven.nosex(raw.oe.rates, raw.frequency, param, i.code, "Direct calculate")
 
       }
 
+      #output total rates
       write.total.seven.nosex(total.rates, mean.age, param, paste0("-by ", var, sep=""))
 
     }
@@ -1185,17 +1314,24 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
     #Case region.ru & region.ru.nosex
     if (byvar=="region.ru.nosex"){
 
+      #for each region
       for(k in 1:length(region_list[[1]])){
+        #code
         i <- region_list[[1]][k]
+        #name
         i.name <- region_list[[2]][k]
+        #surfix
         i.code <- paste0(", ", i.name, sep="")
 
         if (cal_oe==T){
+
+          #generate pop table: # of risk population and # of events
           pop <- pop.count.seven.nosex(data_oe[which(data_oe$region==i&data_oe$ru==1),], nlm, 95)
           write.pop.seven.nosex(pop, param, paste0(i.code, "-rural"))
           pop <- pop.count.seven.nosex(data_oe[which(data_oe$region==i&data_oe$ru==2),], nlm, 95)
           write.pop.seven.nosex(pop, param, paste0(i.code, "-urban"))
 
+          #extract estimated & direct calculated oe rates from estimation result
           oe.rates.ru <- est.covar$oe.rates.m %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
           oe.rates.ub <- est.covar$oe.rates.m %>% filter(region == i&ru==2) %>% select(-region, -ru) %>% arrange(age)
           raw.oe.rates.ru <- est.covar$raw.oe.rates.m %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
@@ -1206,12 +1342,16 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
         if (cal_freq==T){
 
           if (cal_oe==F){
+
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
             pop <- pop.count.seven.nosex(data_freq[which(data_freq$region==i&data_freq$ru==1),], nlm, 95)
             write.pop.seven.nosex(pop, param, paste0(i.code, "-rural"))
             pop <- pop.count.seven.nosex(data_freq[which(data_freq$region==i&data_freq$ru==2),], nlm, 95)
             write.pop.seven.nosex(pop, param, paste0(i.code, "-urban"))
           }
 
+          #extract estimated & direct calculated freq rates from estimation result
           frequency.ru <- est.covar$frequency.m %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
           frequency.ub <- est.covar$frequency.m %>% filter(region == i&ru==2) %>% select(-region, -ru) %>% arrange(age)
           raw.frequency.ru <- est.covar$raw.frequency.m %>% filter(region == i&ru==1) %>% select(-region, -ru) %>% arrange(age)
@@ -1246,6 +1386,7 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
           i.total.rates.ub <- data.frame(i.name)
           i.mean.age.ub <- data.frame(i.name)
 
+          #format total rates and mean ages
           for (j in 1:5) {
 
             i.total.rates.ru <- cbind(i.total.rates.ru, data.frame(raw.total.rates.ru[j], poi.total.rates.ru[j], (poi.total.rates.ru[j]-raw.total.rates.ru[j])/raw.total.rates.ru[j]))
@@ -1391,29 +1532,37 @@ run.marriage.rates.covar <- function(data, param, code, plot, sex, mfp) {
 ##subset method
 compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp){
 
+  #parameters
   nrate <- as.numeric(param$nRate)
   nlm <- as.numeric(param$nlm)
   nhm <- as.numeric(param$nhm)
-  agelist <- data.frame(age=seq(nlm, 95, 1))
   title <- as.character(param$title)
   t1Month <- as.numeric(param$t1Month)
   t2Month <- as.numeric(param$t2Month)
   nWeight <- as.numeric(param$nWeight)
   period <- paste0((t1Month-1)%/%12+1900, " - ",(t2Month-1)%/%12+1900, sep="")
 
+  #age range
+  agelist <- data.frame(age=seq(nlm, 95, 1))
+
+  #options indicating whether calculate oe or freq
   cal_oe <- (nrate==1 | nrate==2)
   cal_freq <- (nrate==1 | nrate==3)
 
+  #set rates as NA first, change later if cal_oe/cal_freq is TRUE.
   mrg1.male.oe <- divorced.male.oe <- rw.male.oe <- rd.male.oe <- NA
   mrg1.male.freq <- divorced.male.freq <- rw.male.freq <- rd.male.freq <- NA
   mrg1.female.oe <- divorced.female.oe <- rw.female.oe <- rd.female.oe <- NA
   mrg1.female.freq <- divorced.female.freq <- rw.female.freq <- rd.female.freq <- NA
 
   if(cal_oe == TRUE){
+    #separate by gender
     male <- subset(data_oe, sex == 1)
     female <- subset(data_oe, sex == 2)
 
-    #direct calculate
+    #direct calculate rates
+    #only set nhm for first marriage, all other events -> 95
+
     # First Marriage
     mrg1.male.oe <- merge(agelist, oe.raw(male, nlm, nhm, 1, 1, nWeight), all.x=TRUE)
     mrg1.female.oe <- merge(agelist, oe.raw(female, nlm, nhm, 1, 1, nWeight), all.x=TRUE)
@@ -1427,9 +1576,12 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
     rd.male.oe <- merge(agelist, oe.raw(male, nlm, 95, 4, 4, nWeight), all.x=TRUE)
     rd.female.oe <- merge(agelist, oe.raw(female, nlm, 95, 4, 4, nWeight), all.x=TRUE)
 
+    #if require estimation by any method: e.g. Poisson
     if (!is.na(method)){
 
       if (method=="Poisson") {
+
+        #only set nhm for first marriage, all other events -> 95
 
         # First Marriage
         mrg1.male.oe.est <- merge(agelist, oe.poi(male, nlm, nhm, 1, 1, nWeight, mfp), all.x=TRUE)
@@ -1445,6 +1597,8 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
         rd.female.oe.est <- merge(agelist, oe.poi(female, nlm, 95, 4, 4, nWeight, mfp), all.x=TRUE)
 
       }
+
+      ## Bayesian method to be developed by ZJN's team
 
       # if (method=="Bayes.norm") {
       #
@@ -1495,10 +1649,13 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
   }
 
   if(cal_freq == TRUE){
+    #separate by gender
     male <- subset(data_freq, sex == 1)
     female <- subset(data_freq, sex == 2)
 
-    #direct calculate
+    #direct calculate rates
+    #only set nhm for first marriage, all other events -> 95
+
     # First Marriage
     mrg1.male.freq <- merge(agelist, freq.raw(male, nlm, nhm, 1, nWeight), all.x=TRUE)
     mrg1.female.freq <- merge(agelist, freq.raw(female, nlm, nhm, 1, nWeight), all.x=TRUE)
@@ -1512,9 +1669,12 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
     rd.male.freq <- merge(agelist, freq.raw(male, nlm, 95, 4, nWeight), all.x=TRUE)
     rd.female.freq <- merge(agelist, freq.raw(female, nlm, 95, 4, nWeight), all.x=TRUE)
 
+    #if require estimation by any method: e.g. Poisson
     if (!is.na(method)){
 
       if (method=="Poisson"){
+
+        #only set nhm for first marriage, all other events -> 95
 
         # First Marriage
         mrg1.male.freq.est <- merge(agelist, freq.poi(male, nlm, nhm, 1, nWeight, mfp), all.x=TRUE)
@@ -1530,6 +1690,8 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
         rd.female.freq.est <- merge(agelist, freq.poi(female, nlm, 95, 4, nWeight, mfp), all.x=TRUE)
 
       }
+
+      ## Bayesian method to be developed by ZJN's team
 
       # if (method=="Bayes.norm"){
       #
@@ -1582,6 +1744,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
   if(plot == TRUE){
 
     wb <- createWorkbook()
+    # define worksheet number
     k<-1
 
     if(cal_oe == TRUE){
@@ -1589,8 +1752,9 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
       addWorksheet(wb, "oe")
       writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
       writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
-      k<-k+1
+      k<-k+1    #if cal_freq==T, store in sheet k=2.
 
+      #start with row 3
       row.index <- 3
       p1 <- rates.plot(mrg1.male.oe, nlm, nhm, "o/e rate", paste0("Figure 5.1. First marriage o/e rates, males", plot.name, sep=""))
       print(p1)
@@ -1599,6 +1763,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
       print(p2)
       insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=7, width=12.55, height=10.4, units="cm")
 
+      #insert pictures
       row.index <- row.index + 22
       p5 <- rates.plot(divorced.male.oe, nlm, 95, "o/e rate", paste0("Figure 6.1. Divorced o/e rates, males", plot.name, sep=""))
       print(p5)
@@ -1607,6 +1772,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
       print(p6)
       insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=7, width=12.55, height=10.4, units="cm")
 
+      #insert pictures
       row.index <- row.index + 22
       p9 <- rates.plot(rw.male.oe, nlm, 95, "o/e rate", paste0("Figure 7.1. Widowed to remarriage o/e rates, males", plot.name, sep=""))
       print(p9)
@@ -1615,6 +1781,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
       print(p10)
       insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=7, width=12.55, height=10.4, units="cm")
 
+      #insert pictures
       row.index <- row.index + 22
       p13 <- rates.plot(rd.male.oe, nlm, 95, "o/e rate", paste0("Figure 8.1. Divorced to remarriage o/e rates, males", plot.name, sep=""))
       print(p13)
@@ -1670,6 +1837,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
 
   if(cal_oe == TRUE){
 
+    #if having est.rates, i.e. have estimated rates
     if (!is.na(method)){
       oe.rates <- data.frame(age=agelist$age, male.mrg1=mrg1.male.oe$est.rates, male.divorced=divorced.male.oe$est.rates,
                              male.remarriage.widowed=rw.male.oe$est.rates, male.remarriage.divorced=rd.male.oe$est.rates,
@@ -1679,6 +1847,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
       oe.rates <- NA
     }
 
+    #direct calculated rates
     raw.oe.rates <- data.frame(age=agelist$age, male.mrg1=mrg1.male.oe$raw.rates, male.divorced=divorced.male.oe$raw.rates,
                                male.remarriage.widowed=rw.male.oe$raw.rates, male.remarriage.divorced=rd.male.oe$raw.rates,
                                female.mrg1=mrg1.female.oe$raw.rates, female.divorced=divorced.female.oe$raw.rates,
@@ -1692,6 +1861,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
 
   if(cal_freq == TRUE){
 
+    #direct calculated rates
     raw.frequency <- data.frame(age=agelist$age, male.mrg1=mrg1.male.freq$raw.rates, male.divorced=divorced.male.freq$raw.rates,
                                 male.remarriage.widowed=rw.male.freq$raw.rates, male.remarriage.divorced=rd.male.freq$raw.rates,
                                 female.mrg1=mrg1.female.freq$raw.rates, female.divorced=divorced.female.freq$raw.rates,
@@ -1703,6 +1873,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
     raw.total.rates <- raw.freq$total.rates
     raw.mean.age <- raw.freq$mean.age
 
+    #if having est.rates, i.e. have estimated rates
     if (!is.na(method)){
 
       frequency <- data.frame(age=agelist$age, male.mrg1=mrg1.male.freq$est.rates, male.divorced=divorced.male.freq$est.rates,
@@ -1729,6 +1900,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
   } else {
     frequency <- NA
     raw.frequency <- NA
+    #if do not calculate frequencies, no total rates and mean ages
     total.rates <- NA
     mean.age <- NA
   }
@@ -1741,6 +1913,7 @@ compute.four <- function(data_oe, data_freq, param, plot, plot.name, method, mfp
 ##covariate method
 compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name, byvar, mfp){
 
+  #parameters
   nrate <- as.numeric(param$nRate)
   nlm <- as.numeric(param$nlm)
   nhm <- as.numeric(param$nhm)
@@ -1752,6 +1925,7 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
   nRegion <- as.numeric(param$nRegion)
   nRace <- as.numeric(param$nRace)
 
+  #options indicating whether calculate oe or freq
   cal_oe <- (nrate==1 | nrate==2)
   cal_freq <- (nrate==1 | nrate==3)
 
@@ -1771,6 +1945,7 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
     race_list <- as.list(race_tmp)
   }
 
+  #set rates as NA first, change later if cal_oe/cal_freq is TRUE.
   mrg1.oe <- divorced.oe <- rw.oe <- rd.oe <- NA
   mrg1.freq <- divorced.freq <- rw.freq <- rd.freq <- NA
   oe.rates <- raw.oe.rates <- frequency <- raw.frequency <- NA
@@ -1786,6 +1961,8 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
   }
 
   if(cal_freq == TRUE){
+
+    #age range
     agelist <- null.rates(data_freq, nlm, 95, byvar)
 
     #only set nhm for first marriage, all other events -> 95
@@ -1802,6 +1979,8 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
   }
 
   if (byvar!="reg.ru.nosex"&byvar!="region.nosex"&byvar!="sex.nosex"&byvar!="ru.nosex"&byvar!="race.nosex") {
+
+    # cases that consider gender
     agelist <- arrange.covar(agelist, byvar)
     agelist <- agelist %>% select(-sex) %>% distinct()
     rates.by <- agelist
@@ -1821,21 +2000,25 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
     }
 
     if(cal_oe == TRUE){
+      #male estimated oe
       oe.rates1 <- data.frame(rates.by,
                               mrg1=mrg1.oe[which(mrg1.oe$sex==1), "est.rates"],
                               divorced=divorced.oe[which(divorced.oe$sex==1), "est.rates"],
                               remarriage.widowed=rw.oe[which(rw.oe$sex==1), "est.rates"],
                               remarriage.divorced=rd.oe[which(rd.oe$sex==1), "est.rates"])
+      #female estimated oe
       oe.rates2 <- data.frame(rates.by,
                               mrg1=mrg1.oe[which(mrg1.oe$sex==2), "est.rates"],
                               divorced=divorced.oe[which(divorced.oe$sex==2), "est.rates"],
                               remarriage.widowed=rw.oe[which(rw.oe$sex==2), "est.rates"],
                               remarriage.divorced=rd.oe[which(rd.oe$sex==2), "est.rates"])
+      #male direct calculated oe
       raw.oe.rates1 <- data.frame(rates.by,
                                   mrg1=mrg1.oe[which(mrg1.oe$sex==1), "raw.rates"],
                                   divorced=divorced.oe[which(divorced.oe$sex==1), "raw.rates"],
                                   remarriage.widowed=rw.oe[which(rw.oe$sex==1), "raw.rates"],
                                   remarriage.divorced=rd.oe[which(rd.oe$sex==1), "raw.rates"])
+      #female direct calculated oe
       raw.oe.rates2 <- data.frame(rates.by,
                                   mrg1=mrg1.oe[which(mrg1.oe$sex==2), "raw.rates"],
                                   divorced=divorced.oe[which(divorced.oe$sex==2), "raw.rates"],
@@ -1848,21 +2031,25 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
     }
 
     if(cal_freq == TRUE){
+      #male estimated freq
       frequency1 <- data.frame(rates.by,
                                mrg1.male=mrg1.freq[which(mrg1.freq$sex==1), "est.rates"],
                                divorced.male=divorced.freq[which(divorced.freq$sex==1), "est.rates"],
                                remarriage.widowed.male=rw.freq[which(rw.freq$sex==1), "est.rates"],
                                remarriage.divorced.male=rd.freq[which(rd.freq$sex==1), "est.rates"])
+      #female estimated freq
       frequency2 <- data.frame(rates.by,
                                mrg1.female=mrg1.freq[which(mrg1.freq$sex==2), "est.rates"],
                                divorced.female=divorced.freq[which(divorced.freq$sex==2), "est.rates"],
                                remarriage.widowed.female=rw.freq[which(rw.freq$sex==2), "est.rates"],
                                remarriage.divorced.female=rd.freq[which(rd.freq$sex==2), "est.rates"])
+      #male direct calculated freq
       raw.frequency1 <- data.frame(rates.by,
                                    mrg1.male=mrg1.freq[which(mrg1.freq$sex==1), "raw.rates"],
                                    divorced.male=divorced.freq[which(divorced.freq$sex==1), "raw.rates"],
                                    remarriage.widowed.male=rw.freq[which(rw.freq$sex==1), "raw.rates"],
                                    remarriage.divorced.male=rd.freq[which(rd.freq$sex==1), "raw.rates"])
+      #female direct calculated freq
       raw.frequency2 <- data.frame(rates.by,
                                    mrg1.female=mrg1.freq[which(mrg1.freq$sex==2), "raw.rates"],
                                    divorced.female=divorced.freq[which(divorced.freq$sex==2), "raw.rates"],
@@ -2019,20 +2206,26 @@ compute.four.covar <- function(data_oe, data_freq, param, code, plot, plot.name,
 #subset method
 compute.seven <- function(data_oe, data_freq, param, plot, plot.name, method, mfp){
 
+  #parameters
   nrate <- as.numeric(param$nRate)
   nlm <- as.numeric(param$nlm)
   nhm <- as.numeric(param$nhm)
-  agelist <- data.frame(age=seq(nlm, 95, 1))
   title <- as.character(param$title)
   t1Month <- as.numeric(param$t1Month)
   t2Month <- as.numeric(param$t2Month)
   nWeight <- as.numeric(param$nWeight)
   period <- paste0((t1Month-1)%/%12+1900, " - ",(t2Month-1)%/%12+1900, sep="")
 
+  #age range
+  agelist <- data.frame(age=seq(nlm, 95, 1))
+
+  #options indicating whether calculate oe or freq
   cal_oe <- (nrate==1 | nrate==2)
   cal_freq <- (nrate==1 | nrate==3)
 
   if(cal_oe == TRUE){
+
+    #separate by gender
     male <- subset(data_oe, sex == 1)
     female <- subset(data_oe, sex == 2)
 
@@ -2963,6 +3156,7 @@ compute.seven <- function(data_oe, data_freq, param, plot, plot.name, method, mf
 ##covariate method
 compute.seven.covar <- function(data_oe, data_freq, param, code, plot, plot.name, byvar, mfp){
 
+  #parameters
   nrate <- as.numeric(param$nRate)
   nlm <- as.numeric(param$nlm)
   nhm <- as.numeric(param$nhm)
@@ -3564,8 +3758,14 @@ compute.seven.covar <- function(data_oe, data_freq, param, code, plot, plot.name
 ##------Prepare Data-------
 data.prepare.mar <- function(data, marital, t1Month, t2Month, nlm, nhm){
 
+  ##### convert wide data into long data #####
+  #This conversion is to figure out the marital status at t2Month
+
+  #extract demographic variables
   info <- data %>% select(region:events)
+  #extract event variables
   evt <- data %>% select(ID, m1:ncol(data))
+  #reshape each record into multiple rows by number of events
   long <- reshape(evt, idvar = "ID",
                   varying = names(evt)[2:ncol(evt)],
                   v.names = c("event", "m"),
@@ -3575,6 +3775,9 @@ data.prepare.mar <- function(data, marital, t1Month, t2Month, nlm, nhm){
                   direction = "long") %>% arrange(ID, event_index)
   names(long)[3:4] <- names(long)[4:3]
 
+  #sort by ID, event month, event type
+  #delete empty events if number of events>0
+  #but keep the first empty event if no event occurs
   data <- long %>% arrange(ID, m, event) %>%
     group_by(ID) %>%
     mutate(new_index = row_number()) %>%
@@ -3583,53 +3786,78 @@ data.prepare.mar <- function(data, marital, t1Month, t2Month, nlm, nhm){
   rm(long)
   rm(evt)
 
+  #generate the marital status at t2 (estimation end month)
   if (marital==4) {
     data <- mar4.t2(data, t2Month)
   } else if (marital==7) {data <- mar7.t2(data, t2Month)}
 
+  #convert back to normal wide data
   data <- data %>% select(region, ID, weight, race, ru, sex, mar, mar2, edu, tMonth, bMonth,
                           events, m, event, new_index) %>%
     pivot_wider(names_from = c(new_index), values_from = c(m, event), names_sep = "")
 
+  ##### Convert each record into 1 person month/row #####
+
+  #define start time t0 and end time t
   data[, "t"] <-  round(t2Month - data$bMonth + 1, 0)
   data[, "t0"] <-  round(t1Month - data$bMonth, 0)
 
+  #split record into person month from month t0 to t
   data[,"fake.event"] <- 1
   data <- survSplit(Surv(data$t0, data$t, data$fake.event)~., data, cut=seq(min(data$t0),max(data$t),1),
                     start="t0", end="t")
+  #add age month for each month
   data[,"period"] <- data$bMonth + data$t0
+  #add year info for each month
   data[,"year"] <- (data$period-1)%/%12+1900
 
+  #add age for each month
   data$age <- floor(data$t0/12)
+  #delete out of range ages
   data <- data[which(data$age >= nlm & data$age <= nhm),]
 
+  #number of person year per row: 0.08333333
   data$py <- (data$t - data$t0)/12
 
+  #set event as NA first, and fill in the information
   data$event <- NA
+
   for(i in 1:max(data$events)){
     event_m <- paste0("m", i, sep="")
     temp <- cbind(data[, event_m], data$period)
     event_type <- paste0("event", i, sep="")
 
+    # in month "event_m",if event type contains information:
+    # it means there are some events happening in the same month
+    # same.m is empty when i=1: only one event
     same.m <- data[which(temp[,1] == temp[,2]&!is.na(data$event)), ]
-
+    # store the second or later same month event information with the new event type
     same.m[, "event"] <- data[which(temp[,1] == temp[,2]&!is.na(data$event)), event_type]
+
+    # in the original dataset, update the first same month event start and end month: both t0
     data[which(temp[,1] == temp[,2]&!is.na(data$event)), "t"] <- data[which(temp[,1] == temp[,2]&!is.na(data$event)), "t0"]
+    # in the original dataset, update the first same month event person year: 0
     data[which(temp[,1] == temp[,2]&!is.na(data$event)), "py"] <- data[which(temp[,1] == temp[,2]&!is.na(data$event)), "t"]-data[which(temp[,1] == temp[,2]&!is.na(data$event)), "t0"]
-    #event1 type
+
+    #all other cases: update event types (not same month event)
     data[which(temp[,1] == temp[,2]&is.na(data$event)), "event"] <- data[which(temp[,1] == temp[,2]&is.na(data$event)), event_type]
 
+    #add the second or later same month events back to data
     data <- rbind(data, same.m) %>% arrange(ID, t0)
   }
 
   data[which(data$event > 17), "event"] <- NA_real_
   data[which(is.na(data$event)), "event"] <- 0
 
-  #status
+  #marital status
+  #pre-event and post-event status
   data$prev <- data$post <- NA_real_
+  #pre-event status is defined as mar2 at t2Month
   data[which(t2Month == (data$period)), "prev"] <- data[which(t2Month == (data$period)), "mar2"]
+  #pre-event status is defined as mar2 at nhm
   data[which(data$t0==(nhm*12+11)&is.na(data$prev)), "prev"] <- data[which(data$t0==(nhm*12+11)&is.na(data$prev)), "mar2"]
 
+  #define status according to event type
   data[which(data$event == 1), "post"] <- 2
   data[which(data$event == 2), "post"] <- 4
   data[which(data$event == 3), "post"] <- 2
@@ -3661,11 +3889,14 @@ data.prepare.mar <- function(data, marital, t1Month, t2Month, nlm, nhm){
   data[which(data$event == 12), "prev"] <- 7
   data[which(data$event == 13), "prev"] <- 8
 
+  #fill all the statuses
   data <- as.data.frame(data %>% group_by(ID) %>% fill(post, .direction="down") %>%
                           fill(prev, .direction="up"))
 
+  #if post-event status is missing, set as the same as pre-event status
   data[which(is.na(data$post)), "post"] <- data[which(is.na(data$post)), "prev"]
 
+  #delete study period later than interview time
   data <- data[which(data$period <= data$tMonth),]
 
   data <- data[, c("region", "ID", "weight", "race", "ru", "sex", "edu", "age", "event", "prev", "post", "py", "year")]
@@ -3673,220 +3904,104 @@ data.prepare.mar <- function(data, marital, t1Month, t2Month, nlm, nhm){
   return(data)
 }
 
-data.prepare.mar.py <- function(data, marital, t1Month, t2Month, nlm, nhm){
-
-  info <- data %>% select(region:events)
-  evt <- data %>% select(ID, m1:ncol(data))
-  long <- reshape(evt, idvar = "ID",
-                  varying = names(evt)[2:ncol(evt)],
-                  v.names = c("event", "m"),
-                  timevar = "event_index",
-                  times = 1:((ncol(evt)-1)/2),
-                  new.row.names = 1:10000000,
-                  direction = "long") %>% arrange(ID, event_index)
-
-  names(long)[3:4] <- names(long)[4:3]
-
-  long <- long %>% arrange(ID, m, event) %>%
-    group_by(ID) %>%
-    mutate(new_index = row_number()) %>%
-    filter(rowSums(is.na(cbind(event, m)))<2 | new_index==1)
-
-  long <- long %>% left_join(info, by = "ID")
-  rm(evt)
-
-  if (marital==4) {
-    long <- mar4.t2(long, t2Month)
-  } else if (marital==7) {long <- mar7.t2(long, t2Month)}
-
-  data <- long %>% select(region, ID, weight, race, ru, sex, mar, mar2, edu, tMonth, bMonth,
-                          events, m, event, new_index) %>%
-    pivot_wider(names_from = c(new_index), values_from = c(m, event), names_sep = "")
-
-  #Generate an event-age dataframe
-  evt <- long %>%
-    mutate(event = replace(event, which(m<t1Month|m>t2Month|m<(nlm*12+bMonth)|m>(nhm*12+bMonth+12)), NA)) %>%
-    mutate(m = replace(m, which(m<t1Month|m>t2Month|m<(nlm*12+bMonth)|m>(nhm*12+bMonth+12)), NA)) %>%
-    filter(rowSums(is.na(cbind(event, m)))<2)
-  evt$t0 <- (evt$m-evt$bMonth)/12
-  evt$t <- ifelse((evt$t0==ceiling(evt$t0)&(ceiling(evt$t0)+1)>(t2Month+1-evt$bMonth)/12)|ceiling(evt$t0)>(t2Month+1-evt$bMonth)/12, (t2Month+1-evt$bMonth)/12,
-                  ifelse(ceiling(evt$t0)==evt$t0, ceiling(evt$t0)+1, ceiling(evt$t0)))
-  evt$age <- floor(evt$t0)
-
-  #Generate a survival dataframe
-  surv <- data %>% select(region:events)
-  surv$event_index <- NA
-  surv$m <- NA
-  surv$event <- NA
-  surv$new_index <- NA
-
-  surv <- surv %>% relocate(event_index, m, event, new_index, region, .after = "ID")
-  surv[, "t"] <-  (t2Month - surv$bMonth + 1)/12
-  surv[, "age_t"] <- (surv$tMonth - surv$bMonth + 1)/12
-  surv$t <- ifelse(surv$t<surv$age_t, surv$t, surv$age_t)
-  surv[, "t0"] <-  (t1Month - surv$bMonth)/12
-  surv[, "fake.event"] <- 1
-  surv <- survSplit(Surv(surv$t0, surv$t, surv$fake.event)~., surv,
-                    cut=seq(nlm, nhm+1, 1),
-                    start="t0", end="t")
-  surv[, "age"] <- floor(surv$t0)
-  surv$event <- NA
-  surv <- surv[-which(surv$age < nlm | surv$age > nhm+1),]
-
-  #------------------------ to do
-  ##Combine evt and surv together (double check)
-
-  #把第一个事件拿出来
-  #起始t0不为整数
-  evt_1 <- evt %>% group_by(ID) %>%
-    arrange(ID, new_index) %>%
-    mutate(new_index = row_number()) %>%
-    filter(t0 != floor(t0) & new_index==1 & t0!=(t1Month-bMonth)/12)
-  evt_1[, 2:5] <- NA
-  evt_1 <- as.data.frame(evt_1)
-  evt_1[,"t"] <- evt_1$t0
-  evt_1[,"t0"] <- ifelse(floor(evt_1$t0)<(t1Month-evt_1$bMonth)/12, (t1Month-evt_1$bMonth)/12, floor(evt_1$t0))
-
-  #创建区间
-  evt_2 <- rbind(evt_1, evt) %>% group_by(ID) %>%
-    arrange(ID, t0, t) %>%
-    mutate(next.t0 = lead(t0)) %>%
-    mutate(next.event = lead(event))
-  evt_2[which(evt_2$t0==evt_2$next.t0&evt_2$event!=evt_2$next.event), "t"] <-
-    evt_2[which(evt_2$t0==evt_2$next.t0&evt_2$event!=evt_2$next.event), "next.t0"]
-  evt_2 <- evt_2 %>% select(-next.t0, -next.event)
-
-  #合并数据
-  combine <- rbind(evt_2, surv) %>% group_by(ID) %>%
-    arrange(ID, t0, t) %>%
-    relocate(t0, t, age, .after = "event") %>%
-    mutate(next.evt = lead(event_index)) %>%
-    mutate(last.t0 = lag(t0)) %>%
-    mutate(next.t0 = lead(t0))
-  #删除event前的多余行
-  combine <- combine[-which(combine$next.t0!=floor(combine$next.t0)&
-                              combine$t0==combine$last.t0&
-                              !is.na(combine$next.evt)),]
-  #删除m1等于t1month开始时间的多余行
-  combine <- combine %>% filter(!(duplicated(cbind(t0, t))&is.na(event_index)))
-  #如果后面有event，修改t
-  combine[which(!is.na(combine$next.evt)), "t"] <- combine[which(!is.na(combine$next.evt)), "next.t0"]
-
-  combine <- combine[which(combine$age >= nlm & combine$age <= nhm+1),] %>%
-    select(ID:age)
-  data <- combine %>% left_join(data, by="ID")
-  data$py <- (data$t - data$t0)
-
-  data[,"t2Month_y"] <- (t2Month-data$bMonth+1)/12
-
-  data[which(data$event > 17), "event"] <- NA_real_
-  data[which(is.na(data$event)), "event"] <- 0
-
-  ### status
-  data$prev <- data$post <- NA_real_
-  data[which(data$t2Month_y == (data$t)), "prev"] <- data[which(data$t2Month_y == (data$t)), "mar2"]
-  data[which(data$t0==nhm&is.na(data$prev)), "prev"] <- data[which(data$t0==nhm&is.na(data$prev)), "mar2"]
-
-  data[which(data$event == 1), "post"] <- 2
-  data[which(data$event == 2), "post"] <- 4
-  data[which(data$event == 3), "post"] <- 2
-  data[which(data$event == 4), "post"] <- 2
-  data[which(data$event == 17), "post"] <- 3
-  data[which(data$event == 5), "post"] <- 5
-  data[which(data$event == 6), "post"] <- 7
-  data[which(data$event == 7), "post"] <- 8
-  data[which(data$event == 8), "post"] <- 1
-  data[which(data$event == 9), "post"] <- 3
-  data[which(data$event == 10), "post"] <- 4
-  data[which(data$event == 11), "post"] <- 2
-  data[which(data$event == 12), "post"] <- 2
-  data[which(data$event == 13), "post"] <- 2
-
-  data[which(data$event == 1), "prev"] <- 1
-  data[which(data$event == 2), "prev"] <- 2
-  data[which(data$event == 3), "prev"] <- 3
-  data[which(data$event == 4), "prev"] <- 4
-  data[which(data$event == 17), "prev"] <- 2
-
-  data[which(data$event == 5), "prev"] <- 1
-  data[which(data$event == 6), "prev"] <- 3
-  data[which(data$event == 7), "prev"] <- 4
-  data[which(data$event == 8), "prev"] <- 5
-  data[which(data$event == 9), "prev"] <- 7
-  data[which(data$event == 10), "prev"] <- 8
-  data[which(data$event == 11), "prev"] <- 5
-  data[which(data$event == 12), "prev"] <- 7
-  data[which(data$event == 13), "prev"] <- 8
-
-  data <- as.data.frame(data %>% group_by(ID) %>% fill(post, .direction="down") %>%
-                          fill(prev, .direction="up"))
-
-  data[which(is.na(data$post)), "post"] <- data[which(is.na(data$post)), "prev"]
-
-  data <- data[, c("region", "ID", "weight", "race", "ru", "sex", "edu", "age", "event", "prev", "post", "py")]
-
-  return(data)
-
-}
-
+#generate mar2 at t2Month for 4 marital status
 mar4.t2 <- function(data, t2Month){
+
+  #copy the original event
+  #delete events after t2Month
   mar2 <- data %>%
     mutate(event.cp = event) %>%
     mutate(event = replace(event, which(m>t2Month), NA)) %>%
     mutate(m = replace(m, which(m>t2Month), NA)) %>%
     filter(rowSums(is.na(cbind(event, m)))<2 | new_index==1)
 
+  #generate the number of existing events and index
   mar2 <- mar2 %>% group_by(ID) %>%
     arrange(ID, m) %>%
     mutate(n = n()) %>%
     mutate(row = row_number())
 
-  mar2$mar2 <- dplyr::case_when(mar2$events==0 ~ mar2$mar,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(1, 3:4) ~ 2,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==2 ~ 4,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==17 ~ 3,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==1 ~ 1,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(2, 17) ~ 2,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==3 ~ 3,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==4 ~ 4)
+  mar2$mar2 <- dplyr::case_when(
+    # if no event occurred, mar2 is the same as mar
+    mar2$events==0 ~ mar2$mar,
+    # if deleted some event, and the last event is 1,3,4 -> married
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(1, 3:4) ~ 2,
+    # if deleted some event, and the last event is 2 -> divorced
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==2 ~ 4,
+    # if deleted some event, and the last event is 17 -> widowed
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==17 ~ 3,
+    # if all events are deleted and the first event after t2Month is 1 -> not married
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==1 ~ 1,
+    # if all events are deleted and the first event after t2Month is 2,17 -> married
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(2, 17) ~ 2,
+    # if all events are deleted and the first event after t2Month is 3 -> widowed
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==3 ~ 3,
+    # if all events are deleted and the first event after t2Month is 4 -> divorced
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp==4 ~ 4)
 
+  #fill in all the mar2
   mar2 <- mar2 %>% fill(mar2, .direction = "up") %>% select(-n, -row)
+  #if mar2 cannot be figured out by logic, set as the same as mar
   mar2$mar2 <- ifelse(is.na(mar2$mar2), mar2$mar, mar2$mar2)
+
   mar2 <- mar2 %>% select(ID, mar2)
   data <- merge(data, unique(mar2), by="ID") %>% relocate(mar2, .after = mar)
   return(data)
 }
 
+#generate mar2 at t2Month for 7 marital status
 mar7.t2 <- function(data, t2Month){
+
+  #copy the original event
+  #delete events after t2Month
   mar2 <- data %>%
     mutate(event.cp = event) %>%
     mutate(event = replace(event, which(m>t2Month), NA)) %>%
     mutate(m = replace(m, which(m>t2Month|is.na(event)), NA)) %>%
     filter(rowSums(is.na(cbind(event, m)))<2 | new_index==1)
 
+  #generate the number of existing events and index
   mar2 <- mar2 %>% group_by(ID) %>%
     arrange(ID, m) %>%
     mutate(n = n()) %>%
     mutate(row = row_number())
 
-  mar2$mar2 <- dplyr::case_when(mar2$events==0 ~ mar2$mar,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(1, 3:4, 11:13) ~ 2,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(2, 10) ~ 4,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(9, 17) ~ 3,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==5 ~ 5,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==6 ~ 7,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==7 ~ 8,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==8 ~ 1,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(1, 5) ~ 1,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(2, 17) ~ 2,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(3, 6) ~ 3,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(4, 7) ~ 4,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(8, 11) ~ 5,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(9, 12) ~ 7,
-                                mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(10, 13) ~ 8)
+  mar2$mar2 <- dplyr::case_when(
+    # if no event occurred, mar2 is the same as mar
+    mar2$events==0 ~ mar2$mar,
+    # if deleted some event, and the last event is 1,3,4,11,12,13 -> married
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(1, 3:4, 11:13) ~ 2,
+    # if deleted some event, and the last event is 2,10 -> divorced not cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(2, 10) ~ 4,
+    # if deleted some event, and the last event is 9,17 -> widowed not cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event %in% c(9, 17) ~ 3,
+    # if deleted some event, and the last event is 5 -> not married cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==5 ~ 5,
+    # if deleted some event, and the last event is 6 -> widowed cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==6 ~ 7,
+    # if deleted some event, and the last event is 7 -> divorced cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==7 ~ 8,
+    # if deleted some event, and the last event is 8 -> not married not cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & mar2$event==8 ~ 1,
+    # if all events are deleted and the first event after t2Month is 1,5 -> not married not cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(1, 5) ~ 1,
+    # if all events are deleted and the first event after t2Month is 2,17 -> married
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(2, 17) ~ 2,
+    # if all events are deleted and the first event after t2Month is 3,6 -> widowed not cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(3, 6) ~ 3,
+    # if all events are deleted and the first event after t2Month is 4,7 -> divorced not cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(4, 7) ~ 4,
+    # if all events are deleted and the first event after t2Month is 8,11 -> not married cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(8, 11) ~ 5,
+    # if all events are deleted and the first event after t2Month is 9,12 -> widowed cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(9, 12) ~ 7,
+    # if all events are deleted and the first event after t2Month is 10,13 -> divorced cohabiting
+    mar2$events>=mar2$n & mar2$row==mar2$n & is.na(mar2$event) & mar2$event.cp %in% c(10, 13) ~ 8)
 
+  #fill in all the mar2
   mar2 <- mar2 %>% fill(mar2, .direction = "up") %>% select(-n, -row)
 
+  #if mar2 cannot be figured out by logic, set as the same as mar
   mar2$mar2 <- ifelse(is.na(mar2$mar2), mar2$mar, mar2$mar2)
   mar2 <- mar2 %>% select(ID, mar2)
   data <- merge(data, unique(mar2), by="ID") %>% relocate(mar2, .after = mar)
@@ -3894,6 +4009,7 @@ mar7.t2 <- function(data, t2Month){
 }
 
 ##------4 Marital-------
+#group frequencies for marital events
 freq.mar4 <- function(frequency, sex){
 
   freq <- data.frame(age = frequency$age)
@@ -3931,26 +4047,33 @@ freq.mar4 <- function(frequency, sex){
   return(list(frequency=frequency, total.rates=total.rates, mean.age=mean.age))
 }
 
+#calculated # of risk population and # of events for 4 marital status
 pop.count.four <- function(data, nlm, nhm, sex){
 
   if (sex==T){
+    #calculated # of risk population and # of events by gender
     pop=pop.count.four.sex(data, nlm, nhm)
   } else if (sex==F){
+    #calculated # of risk population and # of events not by gender
     pop=pop.count.four.nosex(data, nlm, nhm)
   }
 
   return(pop)
 }
 
+#calculated # of risk population and # of events by gender for 4 marital status
 pop.count.four.sex <- function(data, nlm, nhm){
 
+  #age range
   age <- data.frame(age=seq(nlm, nhm, 1))
+  #select useful variables
   d.001 <- subset(data, select=c(age, sex, post, event, py))
 
   # marital status
   if(nrow(d.001)==0){       #if not such people, leave empty
     temp <- data.frame(age=NA,sex=NA,status=NA, count=NA)[F,]
   } else {
+    #calculate person years by marital status
     temp <- aggregate(cbind(d.001[0], count=d.001$py),
                       list(age=d.001$age, sex=d.001$sex, status=d.001$post), sum)
   }
@@ -3958,11 +4081,13 @@ pop.count.four.sex <- function(data, nlm, nhm){
   if(nrow(d.001)==0){       #if not such people, leave empty
     all <- data.frame(age=NA,sex=NA,x=NA)[F,]
   } else {
+    #calculate total person years for all statuses
     all <- aggregate(cbind(d.001[0], count=d.001$py),
                      list(age=d.001$age, sex=d.001$sex), sum)
     all <- merge(age, all, all.x = T)
   }
 
+  #extract person years for each marital status
   male.nm <- merge(age, subset(temp, sex == 1 & status == 1, select=c(age, count)), all.x=TRUE)
   female.nm <- merge(age, subset(temp, sex == 2 & status == 1, select=c(age, count)), all.x=TRUE)
   male.married <- merge(age, subset(temp, sex == 1 & status == 2, select=c(age, count)), all.x=TRUE)
@@ -3972,6 +4097,7 @@ pop.count.four.sex <- function(data, nlm, nhm){
   male.divorced <- merge(age, subset(temp, sex == 1 & status == 4, select=c(age, count)), all.x=TRUE)
   female.divorced <- merge(age, subset(temp, sex == 2 & status == 4, select=c(age, count)), all.x=TRUE)
 
+  #add total person years for all statuses
   if (nrow(all)==0){
     all.male <- all.female <- merge(age, all, all.x=T)
   } else {
@@ -3982,13 +4108,16 @@ pop.count.four.sex <- function(data, nlm, nhm){
   names(all.male) <- c("age", "count")
   names(all.female) <- c("age", "count")
 
+  #combine all results
   status <- data.frame(age=age$age, all.male=all.male$count, male.never.married=male.nm$count,
                        male.married=male.married$count, male.widowed=male.widowed$count,
                        male.divorced=male.divorced$count, all.female=all.female$count,
                        female.never.married=female.nm$count, female.married=female.married$count,
                        female.widowed=female.widowed$count, female.divorced=female.divorced$count)
 
+  #round to 1 decimal place
   status[, 2:ncol(status)] <- round(status[, 2:ncol(status)], 1)
+  #add total person years for all ages
   risk.total <- data.frame(age = "Total", t(colSums(status[2:ncol(status)], na.rm = T)))
   status <- rbind(status, risk.total)
   rm(risk.total)
@@ -3997,10 +4126,12 @@ pop.count.four.sex <- function(data, nlm, nhm){
   if(nrow(d.001)==0){       #if not such people, leave empty
     temp <- data.frame(age=NA,sex=NA,event=NA, count=NA)[F,]
   } else {
+    #calculate number of events by event type
     temp <- aggregate(cbind(d.001[0], count=1),
                       list(age=d.001$age, sex=d.001$sex, event=d.001$event), sum)
   }
 
+  #extract number of events for each event type
   male.mrg1 <-  merge(age, subset(temp, sex == 1 & event == 1, select=c(age, count)), all.x=TRUE)
   female.mrg1 <-  merge(age, subset(temp, sex == 2 & event == 1, select=c(age, count)), all.x=TRUE)
   male.divorced <-  merge(age, subset(temp, sex == 1 & event == 2, select=c(age, count)), all.x=TRUE)
@@ -4011,6 +4142,7 @@ pop.count.four.sex <- function(data, nlm, nhm){
   female.rd <-  merge(age, subset(temp, sex == 2 & event == 4, select=c(age, count)), all.x=TRUE)
   t <- temp[-which(temp$event == 0),]
 
+  #add total number of events for all event types
   if(nrow(t)==0){       #if not such event, leave empty
     all <- data.frame(age=NA,sex=NA,x=NA)[F,]
     all.male <- all.female <- merge(age, all, all.x=T)
@@ -4023,12 +4155,14 @@ pop.count.four.sex <- function(data, nlm, nhm){
   names(all.male) <- c("age", "count")
   names(all.female) <- c("age", "count")
 
+  #combine all results
   event <- data.frame(age=age$age, all.male=all.male$count, male.mrg1=male.mrg1$count,
                       male.divorced=male.divorced$count, male.remarriage.widowed=male.rw$count,
                       male.remarriage.divorced=male.rd$count, all.female=all.female$count,
                       female.mrg1=female.mrg1$count, female.divorced=female.divorced$count,
                       female.remarriage.widowed=female.rw$count, female.remarriage.divorced=female.rd$count)
 
+  #add total number of events for all ages
   event.total <- data.frame(age = "Total", t(colSums(event[2:ncol(event)], na.rm = T)))
   event <- rbind(event, event.total)
   rm(event.total)
@@ -4036,6 +4170,7 @@ pop.count.four.sex <- function(data, nlm, nhm){
   return(list(status=status, event=event))
 }
 
+#calculated # of risk population and # of events not by gender for 4 marital status
 pop.count.four.nosex <- function(data, nlm, nhm){
 
   age <- data.frame(age=seq(nlm, nhm, 1))
@@ -4085,6 +4220,7 @@ pop.count.four.nosex <- function(data, nlm, nhm){
   rw <-  merge(age, subset(temp, event == 3, select=c(age, count)), all.x=TRUE)
   rd <-  merge(age, subset(temp, event == 4, select=c(age, count)), all.x=TRUE)
   t <- temp[-which(temp$event == 0),]
+
   if(nrow(t)==0){
     all <- data.frame(age=NA,x=NA)[F,]
   } else {
@@ -4104,6 +4240,7 @@ pop.count.four.nosex <- function(data, nlm, nhm){
   return(list(status=status, event=event))
 }
 
+#draw rate plots for 4 marital status co-variant results
 draw.mar4.nRate <- function(mrg1.oe, mrg1.freq, divorced.oe, divorced.freq, rw.oe, rw.freq, rd.oe, rd.freq,
                             code, nlm, nhm, title, period, plot.name, byvar, cal_oe, cal_freq){
 
@@ -5032,17 +5169,22 @@ draw.mar4.nRate <- function(mrg1.oe, mrg1.freq, divorced.oe, divorced.freq, rw.o
 
 }
 
+#output rates for 4 marital status results
 write.rates.four <- function(oe.rates, frequency, param, name, method, sex){
 
   if (sex==T){
+    #output rates for 4 marital status by gender results
     write.rates.four.sex(oe.rates, frequency, param, name, method)
   } else if (sex==F){
+    #output rates for 4 marital status not by gender results
     write.rates.four.nosex(oe.rates, frequency, param, name, method)
   }
 
 }
 
+#output rates for 4 marital status by gender results
 write.rates.four.sex <- function(oe.rates, frequency, param, name, method){
+
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight")
   forDatstl2 <- createStyle(halign="right", border="TopBottomLeftRight", numFmt = "#,##0.0000")
   wb <- createWorkbook()
@@ -5101,6 +5243,7 @@ write.rates.four.sex <- function(oe.rates, frequency, param, name, method){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 ", method, " rates", name, ".xlsx", sep=""), overwrite=TRUE)
 }
 
+#output rates for 4 marital status not by gender results
 write.rates.four.nosex <- function(oe.rates, frequency, param, name, method){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight")
   forDatstl2 <- createStyle(halign="right", border="TopBottomLeftRight", numFmt = "#,##0.0000")
@@ -5147,16 +5290,20 @@ write.rates.four.nosex <- function(oe.rates, frequency, param, name, method){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 ", method, " rates", name, ".xlsx", sep=""), overwrite=TRUE)
 }
 
+#output pop table for 4 marital status results
 write.pop.four <- function(pop, param, name, sex){
 
   if (sex==T){
+    #output pop table for 4 marital status by gender results
     write.pop.four.sex(pop, param, name)
   } else if (sex==F){
+    #output pop table for 4 marital status not by gender results
     write.pop.four.nosex(pop, param, name)
   }
 
 }
 
+#output pop table for 4 marital status by gender results
 write.pop.four.sex <- function(pop, param, name){
 
   #define formate
@@ -5214,6 +5361,7 @@ write.pop.four.sex <- function(pop, param, name){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 popTable", name, ".xlsx", sep=""), overwrite=T)
 }
 
+#output pop table for 4 marital status by gender results
 write.pop.four.nosex <- function(pop, param, name){
 
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
@@ -5250,14 +5398,18 @@ write.pop.four.nosex <- function(pop, param, name){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 popTable", name, ".xlsx", sep=""), overwrite=T)
 }
 
+#output total rates for 4 marital status co-variant results
 write.total.four <- function(total.rates, mean.age, param, name, sex){
   if (sex==T){
+    #output total rates for 4 marital status by gender results
     write.total.four.sex(total.rates, mean.age, param, name)
   } else if (sex==F){
+    #output total rates for 4 marital status not by gender results
     write.total.four.nosex(total.rates, mean.age, param, name)
   }
 }
 
+#output total rates for 4 marital status subset results
 write.total.four.subset <- function(total.rates, mean.age, param, name){
   #name = "-rural and urban"
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
@@ -5320,6 +5472,7 @@ write.total.four.subset <- function(total.rates, mean.age, param, name){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 total rates", name, ".xlsx", sep=""), overwrite=T)
 }
 
+#output total rates for 4 marital status by gender co-variant results
 write.total.four.sex <- function(total.rates, mean.age, param, name){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="left", border="TopBottomLeftRight", wrapText = TRUE)
@@ -5407,6 +5560,7 @@ write.total.four.sex <- function(total.rates, mean.age, param, name){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 total rates", name, ".xlsx", sep=""), overwrite=T)
 }
 
+#output total rates for 4 marital status not by gender co-variant results
 write.total.four.nosex <- function(total.rates, mean.age, param, name){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="left", border="TopBottomLeftRight", wrapText = TRUE)
@@ -5468,6 +5622,7 @@ write.total.four.nosex <- function(total.rates, mean.age, param, name){
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 total rates", name, ".xlsx", sep=""), overwrite=T)
 }
 
+#special cases: output total rates for 4 marital status "reg.ru" or "reg.ru.nosex" results
 write.total.four.covar <- function(total.rates.ru, total.rates.ub, mean.age.ru, mean.age.ub, param, name, sex){
   if (sex==T){
     write.total.four.covar.sex(total.rates.ru, total.rates.ub, mean.age.ru, mean.age.ub, param, name)
@@ -5476,6 +5631,7 @@ write.total.four.covar <- function(total.rates.ru, total.rates.ub, mean.age.ru, 
   }
 }
 
+#special cases: output total rates for 4 marital status "reg.ru" results
 write.total.four.covar.sex <- function(total.rates.ru, total.rates.ub, mean.age.ru, mean.age.ub, param, name){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="left", border="TopBottomLeftRight", wrapText = TRUE)
@@ -5554,6 +5710,7 @@ write.total.four.covar.sex <- function(total.rates.ru, total.rates.ub, mean.age.
   saveWorkbook(wb, paste0(output.dir, "/", title, " Mar4 total rates", name, ".xlsx", sep=""), overwrite=T)
 }
 
+#special cases: output total rates for 4 marital status "reg.ru.nosex" results
 write.total.four.covar.nosex <- function(total.rates.ru, total.rates.ub, mean.age.ru, mean.age.ub, param, name){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="left", border="TopBottomLeftRight", wrapText = TRUE)
