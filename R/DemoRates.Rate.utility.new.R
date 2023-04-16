@@ -541,7 +541,7 @@ prediction.data <- function(d0, nl, nh, byvar){
   return(pred.data)
 }
 
-# compute direct calculated oe rates: subset method
+# Basic I: compute direct calculated oe rates: subset method
 oe.raw <- function(data, nl, nh, status, evt, nWeight){
 
   # (revised) count in weights
@@ -588,7 +588,7 @@ oe.raw <- function(data, nl, nh, status, evt, nWeight){
   return(oe)
 }
 
-# compute estimated oe rates: subset method
+# Basic II: compute estimated oe rates: subset method
 oe.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
 
   # (revised) count in weights
@@ -641,7 +641,7 @@ oe.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
   return(oe)
 }
 
-# compute direct calculated freq rates: subset method
+# Basic III: compute direct calculated freq rates: subset method
 freq.raw <- function(data, nl, nh, evt, nWeight){
 
   # (revised) count in weights
@@ -675,7 +675,7 @@ freq.raw <- function(data, nl, nh, evt, nWeight){
   return(freq)
 }
 
-# compute estimated freq rates: subset method
+# Basic IV: compute estimated freq rates: subset method
 freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
 
   # (revised) count in weights
@@ -727,7 +727,7 @@ freq.poi <- function(data, nl, nh, evt, nWeight, mfp){
   return(freq)
 }
 
-# compute direct calculated freq rates for by marital fertility: subset method
+# Birth: compute direct calculated freq rates for by marital fertility: subset method
 freqM.raw <- function(data, nl, nh, status, evt, nWeight){
 
   # (revised) count in weights
@@ -759,7 +759,7 @@ freqM.raw <- function(data, nl, nh, status, evt, nWeight){
   return(freq)
 }
 
-# compute estimated freq rates for by marital fertility: subset method
+# Birth: compute estimated freq rates for by marital fertility: subset method
 freqM.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
 
   # (revised) count in weights
@@ -813,7 +813,7 @@ freqM.poi <- function(data, nl, nh, status, evt, nWeight, mfp){
   return(freq)
 }
 
-# compute direct calculated and estimated oe rates: co-variant method
+# Covar I: compute direct calculated and estimated oe rates: co-variant method
 oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
 
   # (revised) count in weights
@@ -1371,7 +1371,7 @@ oe.est.byvar <- function(data, nl, nh, status, evt, byvar, nWeight, mfp){
   return(oe)
 }
 
-# compute direct calculated and estimated freq rates: co-variant method
+# Covar II: compute direct calculated and estimated freq rates: co-variant method
 freq.est.byvar <- function(data, nl, nh, evt, byvar, nWeight, mfp){
 
   # (revised)count in weights
