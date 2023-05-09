@@ -185,7 +185,6 @@ run.rates <- function(file=NA, csv=FALSE, para=NA, plot=FALSE, sex=TRUE, method=
         #
         # }
 
-      }
 
       # else if (nFunction==2){           #migration
       #
@@ -203,15 +202,15 @@ run.rates <- function(file=NA, csv=FALSE, para=NA, plot=FALSE, sex=TRUE, method=
       #     run.leaving.rates.covar(data, param, code, plot, sex, mfp)
       #   }
       #
-      # } else if (nFunction==4){           #user-defined events
-      #
-      #   if (nCovariant==0){
-      #     run.defined.rates(data, param, code, plot, method, mfp)
-      #   } else if (nCovariant==1){
-      #     run.defined.rates.covar(data, param, code, plot, sex, mfp)
-      #
-      #   }
-      # }
+      } else if (nFunction==4){           #user-defined events
+
+        if (nCovariant==0){
+          run.defined.rates(data, param, code, plot, method, mfp)
+        } else if (nCovariant==1){
+          run.defined.rates.covar(data, param, code, plot, sex, mfp)
+
+        }
+      }
 
     }
   }
@@ -1816,9 +1815,15 @@ total.freq <- function(freq){
 
 mean.age.cal <- function(freq){
 
-  mean.age <- as.data.frame(t(colSums(freq[ ,2:ncol(freq)]*(freq$age+0.5), na.rm = T)/
-                                ifelse(colSums(freq[,2:ncol(freq)], na.rm = T)==0,
-                                       NA_real_, colSums(freq[,2:ncol(freq)], na.rm = T))))
+  if (ncol(freq)==2){
+    mean.age <- as.data.frame(t(sum(freq[ ,2:ncol(freq)]*(freq$age+0.5), na.rm = T)/
+                                  ifelse(sum(freq[,2:ncol(freq)], na.rm = T)==0,
+                                         NA_real_, sum(freq[,2:ncol(freq)], na.rm = T))))
+  } else {
+    mean.age <- as.data.frame(t(colSums(freq[ ,2:ncol(freq)]*(freq$age+0.5), na.rm = T)/
+                                  ifelse(colSums(freq[,2:ncol(freq)], na.rm = T)==0,
+                                         NA_real_, colSums(freq[,2:ncol(freq)], na.rm = T))))
+  }
 
   return(mean.age)
 }

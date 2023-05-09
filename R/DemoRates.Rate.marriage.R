@@ -5306,7 +5306,7 @@ write.pop.four <- function(pop, param, name, sex){
 #output pop table for 4 marital status by gender results
 write.pop.four.sex <- function(pop, param, name){
 
-  #define formate
+  #define format
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="right", border="TopBottomLeftRight", numFmt = "#,##0.0")
 
