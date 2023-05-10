@@ -401,14 +401,35 @@ run.defined.rates.covar <- function(data, param, code, plot, sex, mfp) {
         raw.mean.age.ub <- raw.freq.ub$mean.age
         
         #format total rates and mean ages
-        for (k in 1:eve_num) {
-          i.total.rates.ru <- data.frame(i.name, raw.total.rates.ru[k], poi.total.rates.ru[k], (poi.total.rates.ru[k]-raw.total.rates.ru[k])/raw.total.rates.ru[k])
-
-          i.mean.age.ru <- data.frame(i.name, raw.mean.age.ru[k], poi.mean.age.ru[k], (poi.mean.age.ru[k]-raw.mean.age.ru[k])/raw.mean.age.ru[k])
+        if (sex==T){
           
-          i.total.rates.ub <- data.frame(i.name, raw.total.rates.ub[k], poi.total.rates.ub[k], (poi.total.rates.ub[k]-raw.total.rates.ub[k])/raw.total.rates.ub[k])
+          for (k in seq(1,eve_num*2,2)) {
+            i.total.rates.ru <- data.frame(i.name, raw.total.rates.ru[k], poi.total.rates.ru[k], (poi.total.rates.ru[k]-raw.total.rates.ru[k])/raw.total.rates.ru[k],
+                                           raw.total.rates.ru[k+1], poi.total.rates.ru[k+1], (poi.total.rates.ru[k+1]-raw.total.rates.ru[k+1])/raw.total.rates.ru[k+1])
+            
+            i.mean.age.ru <- data.frame(i.name, raw.mean.age.ru[k], poi.mean.age.ru[k], (poi.mean.age.ru[k]-raw.mean.age.ru[k])/raw.mean.age.ru[k],
+                                        raw.mean.age.ru[k+1], poi.mean.age.ru[k+1], (poi.mean.age.ru[k+1]-raw.mean.age.ru[k+1])/raw.mean.age.ru[k+1])
+            
+            i.total.rates.ub <- data.frame(i.name, raw.total.rates.ub[k], poi.total.rates.ub[k], (poi.total.rates.ub[k]-raw.total.rates.ub[k])/raw.total.rates.ub[k],
+                                           raw.total.rates.ub[k+1], poi.total.rates.ub[k+1], (poi.total.rates.ub[k+1]-raw.total.rates.ub[k+1])/raw.total.rates.ub[k+1])
+            
+            i.mean.age.ub <- data.frame(i.name, raw.mean.age.ub[k], poi.mean.age.ub[k], (poi.mean.age.ub[k]-raw.mean.age.ub[k])/raw.mean.age.ub[k],
+                                        raw.mean.age.ub[k+1], poi.mean.age.ub[k+1], (poi.mean.age.ub[k+1]-raw.mean.age.ub[k+1])/raw.mean.age.ub[k+1])
+            
+          }
           
-          i.mean.age.ub <- data.frame(i.name, raw.mean.age.ub[k], poi.mean.age.ub[k], (poi.mean.age.ub[k]-raw.mean.age.ub[k])/raw.mean.age.ub[k])
+        } else {
+          
+          for (k in 1:eve_num) {
+            i.total.rates.ru <- data.frame(i.name, raw.total.rates.ru[k], poi.total.rates.ru[k], (poi.total.rates.ru[k]-raw.total.rates.ru[k])/raw.total.rates.ru[k])
+            
+            i.mean.age.ru <- data.frame(i.name, raw.mean.age.ru[k], poi.mean.age.ru[k], (poi.mean.age.ru[k]-raw.mean.age.ru[k])/raw.mean.age.ru[k])
+            
+            i.total.rates.ub <- data.frame(i.name, raw.total.rates.ub[k], poi.total.rates.ub[k], (poi.total.rates.ub[k]-raw.total.rates.ub[k])/raw.total.rates.ub[k])
+            
+            i.mean.age.ub <- data.frame(i.name, raw.mean.age.ub[k], poi.mean.age.ub[k], (poi.mean.age.ub[k]-raw.mean.age.ub[k])/raw.mean.age.ub[k])
+            
+          }
           
         }
         
@@ -449,7 +470,7 @@ compute.def.covar <- function(data_oe, data_freq, param, code, plot, plot.name, 
   nRegion <- as.numeric(param$nRegion)
   nRace <- as.numeric(param$nRace)
   nWeight <- as.numeric(param$nWeight)
-
+  Marital <- as.numeric(param$Marital)
   period <- paste0((t1Month-1)%/%12+1900, " - ",(t2Month-1)%/%12+1900, sep="")
 
   #options indicating whether calculate oe or freq
@@ -2860,7 +2881,7 @@ write.total.def.covar.sex <- function(total.rates.ru, total.rates.ub, mean.age.r
       addStyle(wb, sheet=i, style=forDatstl2, rows=5:(nrow(input)+7), cols=2, gridExpand = TRUE)
       addStyle(wb, sheet=i, style=forDatstl, rows=5:7, cols=cur_col:(cur_col+5), gridExpand = TRUE)
       
-      colnames(input) <- c("", rep(c("Direct Calculate", "Poisson Estimate", "Difference%"),event_num*2))
+      colnames(input) <- c(cur_name, rep(c("Direct Calculate", "Poisson Estimate", "Difference%"),event_num*2))
       writeData(wb, sheet=i, input, startRow=7, startCol=2, borders="all")
       
       if (i%%2==0){
