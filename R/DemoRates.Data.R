@@ -1007,7 +1007,7 @@ screen2.birth.ym <- function(data) {
 
   data <- data %>%
     relocate(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12,
-             .after = bMonth) %>% select(1:29)
+             .after = bMonth) %>% select(ID:err12)
 
   return(data)
 }
@@ -1038,7 +1038,7 @@ screen2.birth.cmc <- function(data) {
 
   data <- data %>%
     relocate(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12,
-             .after = bMonth) %>% select(1:26)
+             .after = bMonth) %>% select(ID:err12)
 
   return(data)
 }
@@ -1082,6 +1082,7 @@ screen2.birthM.cmc <- function(data, cohabit) {
 }
 
 recode.birth <- function(data, nr2, fertM, cohabit){
+  
   if (fertM==0){
     data <- data %>% group_by(ID) %>%
       arrange(ID, m) %>% mutate(new_index = row_number()) %>%
@@ -1118,29 +1119,31 @@ recode.birth <- function(data, nr2, fertM, cohabit){
       mutate(next.mar = ifelse(lead(new_event) %in% c(101:104), lead(new_event), NA)) %>%
       mutate(next.age = ifelse(lead(new_event) %in% c(101:104), (lead(m)-bMonth)/12, NA)) %>%
       fill(next.mar, next.age, .direction = "up")
-    data <- data %>% group_by(ID) %>%
-      arrange(ID, m) %>%
-      mutate(mar.bf = dplyr::case_when(lag.mar==103 ~ 3,
-                                lag.mar==104 ~ 4,
-                                lag.mar==101&new_event<100 ~ 2,
-                                lag.mar==102&new_event<100 ~ 2,
-                                new_event==101 ~ 1,
-                                new_event==103 ~ 2,
-                                new_event==104 ~ 2,
-                                is.na(lag.mar)&new_event==102&(m-bMonth)/12<65 ~ 4,
-                                is.na(lag.mar)&new_event==102&(m-bMonth)/12>=65 ~ 3,
-                                is.na(lag.mar)&next.mar==101&new_event<100 ~ 1,
-                                is.na(lag.mar)&next.mar==102&next.age<65&new_event<100 ~ 4,
-                                is.na(lag.mar)&next.mar==102&next.age>=65&new_event<100 ~ 3,
-                                is.na(lag.mar)&next.mar==103&new_event<100 ~ 2,
-                                is.na(lag.mar)&next.mar==104&new_event<100 ~ 2,
-                                is.na(lag.mar)&is.na(next.mar)&new_event<100 ~ mar,
-                                TRUE ~ NA_real_)) %>%
-      relocate(mar.bf, .after = new_event) %>%
+    data <- data %>% group_by(ID) %>% arrange(ID, m)
+    
+    data$mar.bf <- dplyr::case_when(data$lag.mar==103 ~ 3,
+                                    data$lag.mar==104 ~ 4,
+                                    data$lag.mar==101 & data$new_event<100 ~ 2,
+                                    data$lag.mar==102 & data$new_event<100 ~ 2,
+                                    data$new_event==101 ~ 1,
+                                    data$new_event==103 ~ 2,
+                                    data$new_event==104 ~ 2,
+                                    is.na(data$lag.mar) & data$new_event==102 & (data$m-data$bMonth)/12<65 ~ 4,
+                                    is.na(data$lag.mar) & data$new_event==102 & (data$m-data$bMonth)/12>=65 ~ 3,
+                                    is.na(data$lag.mar) & data$next.mar==101 & data$new_event<100 ~ 1,
+                                    is.na(data$lag.mar) & data$next.mar==102 & data$next.age<65 & data$new_event<100 ~ 4,
+                                    is.na(data$lag.mar) & data$next.mar==102 & data$next.age>=65 & data$new_event<100 ~ 3,
+                                    is.na(data$lag.mar) & data$next.mar==103 & data$new_event<100 ~ 2,
+                                    is.na(data$lag.mar) & data$next.mar==104 & data$new_event<100 ~ 2,
+                                    is.na(data$lag.mar) & is.na(data$next.mar) & data$new_event<100 ~ data$mar,
+                                    TRUE ~ NA_real_)
+    
+    data <- data %>% relocate(mar.bf, .after = new_event) %>%
       select(-lag.mar, -next.mar, -next.age)
 
     data <- data %>% select(-event)
     names(data)[4] <- "event"
+    
   } else if (fertM==1&cohabit==1) {
     birth <- data %>%
       mutate(m = replace(m, which(event %in% c(1:6)), NA)) %>%
@@ -1177,95 +1180,97 @@ recode.birth <- function(data, nr2, fertM, cohabit){
       mutate(next.union.age = ifelse(lead(new_event) %in% c(105:106), (lead(m)-bMonth)/12, NA)) %>%
       fill(next.union, next.union.age, .direction = "up")
 
-    data <- data %>% group_by(ID) %>%
-      arrange(ID, m) %>%
-      mutate(marbf4 = dplyr::case_when(lag.mar==103 ~ 003,
-                                lag.mar==104 ~ 004,
-                                lag.mar==101&new_event<100 ~ 002,
-                                lag.mar==102&new_event<100 ~ 002,
-                                new_event==101 ~ 001,
-                                new_event==103 ~ 002,
-                                new_event==104 ~ 002,
-                                is.na(lag.mar)&new_event==102&(m-bMonth)/12<65 ~ 004,
-                                is.na(lag.mar)&new_event==102&(m-bMonth)/12>=65 ~ 003,
-                                is.na(lag.mar)&next.mar==101&new_event<100 ~ 001,
-                                is.na(lag.mar)&next.mar==102&next.mar.age<65&new_event<100 ~ 004,
-                                is.na(lag.mar)&next.mar==102&next.mar.age>=65&new_event<100 ~ 003,
-                                is.na(lag.mar)&next.mar==103&new_event<100 ~ 002,
-                                is.na(lag.mar)&next.mar==104&new_event<100 ~ 002,
-                                is.na(lag.mar)&is.na(next.mar)&new_event<100 ~ mar,
-                                TRUE ~ NA_real_))%>%
-      relocate(marbf4, .after = new_event)
+    data <- data %>% group_by(ID) %>% arrange(ID, m)
+    
+    data$marbf4 <- dplyr::case_when(data$lag.mar==103 ~ 003,
+                                    data$lag.mar==104 ~ 004,
+                                    data$lag.mar==101 & data$new_event<100 ~ 002,
+                                    data$lag.mar==102 & data$new_event<100 ~ 002,
+                                    data$new_event==101 ~ 001,
+                                    data$new_event==103 ~ 002,
+                                    data$new_event==104 ~ 002,
+                                    is.na(data$lag.mar) & data$new_event==102 & (data$m-data$bMonth)/12<65 ~ 004,
+                                    is.na(data$lag.mar) & data$new_event==102 & (data$m-data$bMonth)/12>=65 ~ 003,
+                                    is.na(data$lag.mar) & data$next.mar==101 & data$new_event<100 ~ 001,
+                                    is.na(data$lag.mar) & data$next.mar==102 & data$next.mar.age<65 & data$new_event<100 ~ 004,
+                                    is.na(data$lag.mar) & data$next.mar==102 & data$next.mar.age>=65 & data$new_event<100 ~ 003,
+                                    is.na(data$lag.mar) & data$next.mar==103 & data$new_event<100 ~ 002,
+                                    is.na(data$lag.mar) & data$next.mar==104 & data$new_event<100 ~ 002,
+                                    is.na(data$lag.mar) & is.na(data$next.mar) & data$new_event<100 ~ data$mar,
+                                    TRUE ~ NA_real_)
+    
+    data <- data %>% relocate(marbf4, .after = new_event) %>% 
+      group_by(ID) %>% arrange(ID, m)
 
-    data <- data %>% group_by(ID) %>%
-      arrange(ID, m) %>%
-      mutate(mar.bf = dplyr::case_when(marbf4 == 001 ~ 1,
-                                marbf4 == 002 ~ 2,
-                                marbf4 == 003 ~ 3,
-                                marbf4 == 004 ~ 4,
-                                marbf4 == 001&lag.union==106 ~ 1,
-                                marbf4 == 001&lag.union==105 ~ 5,
-                                marbf4 == 003&lag.union==106 ~ 3,
-                                marbf4 == 003&lag.union==105 ~ 7,
-                                marbf4 == 004&lag.union==106 ~ 4,
-                                marbf4 == 004&lag.union==105 ~ 8,
-                                marbf4 == 1&lag.union == 105 ~5,
-                                marbf4 == 1&lag.union == 106 ~1,
-                                marbf4 == 3&lag.union == 105 ~7,
-                                marbf4 == 3&lag.union == 106 ~3,
-                                marbf4 == 4&lag.union == 105 ~8,
-                                marbf4 == 4&lag.union == 106 ~4,
-                                marbf4 == 5&lag.union == 105 ~5,
-                                marbf4 == 5&lag.union == 106 ~1,
-                                marbf4 == 6&lag.union == 105 ~7,
-                                marbf4 == 6&lag.union == 106 ~3,
-                                marbf4 == 7&lag.union == 105 ~8,
-                                marbf4 == 7&lag.union == 106 ~4,
-                                #use next status
-                                is.na(lag.union)&marbf4 == 001&next.union==106 ~ 5,
-                                is.na(lag.union)&marbf4 == 001&next.union==105 ~ 1,
-                                is.na(lag.union)&marbf4 == 003&next.union==106 ~ 7,
-                                is.na(lag.union)&marbf4 == 003&next.union==105 ~ 3,
-                                is.na(lag.union)&marbf4 == 004&next.union==106 ~ 8,
-                                is.na(lag.union)&marbf4 == 004&next.union==105 ~ 4,
-                                is.na(lag.union)&marbf4 == 1&next.union == 105 ~1,
-                                is.na(lag.union)&marbf4 == 1&next.union == 106 ~5,
-                                is.na(lag.union)&marbf4 == 3&next.union == 105 ~3,
-                                is.na(lag.union)&marbf4 == 3&next.union == 106 ~7,
-                                is.na(lag.union)&marbf4 == 4&next.union == 105 ~4,
-                                is.na(lag.union)&marbf4 == 4&next.union == 106 ~8,
-                                is.na(lag.union)&marbf4 == 5&next.union == 105 ~1,
-                                is.na(lag.union)&marbf4 == 5&next.union == 106 ~5,
-                                is.na(lag.union)&marbf4 == 6&next.union == 105 ~3,
-                                is.na(lag.union)&marbf4 == 6&next.union == 106 ~7,
-                                is.na(lag.union)&marbf4 == 7&next.union == 105 ~4,
-                                is.na(lag.union)&marbf4 == 7&next.union == 106 ~8,
-                                #new event == 105 106 not marbf4
-                                marbf4 == 1&new_event == 105 ~1,
-                                marbf4 == 1&new_event == 106 ~5,
-                                marbf4 == 3&new_event == 105 ~3,
-                                marbf4 == 3&new_event == 106 ~7,
-                                marbf4 == 4&new_event == 105 ~4,
-                                marbf4 == 4&new_event == 106 ~8,
-                                marbf4 == 5&new_event == 105 ~1,
-                                marbf4 == 5&new_event == 106 ~5,
-                                marbf4 == 6&new_event == 105 ~3,
-                                marbf4 == 6&new_event == 106 ~7,
-                                marbf4 == 7&new_event == 105 ~4,
-                                marbf4 == 7&new_event == 106 ~8,
-                                new_event==105&next.mar== 101 ~ 1,
-                                new_event==106&next.mar== 101 ~ 5,
-                                new_event==105&next.mar== 102&(m-bMonth)/12>=65 ~ 3,
-                                new_event==105&next.mar== 102&(m-bMonth)/12<65 ~ 4,
-                                new_event==106&next.mar== 102&(m-bMonth)/12>=65 ~ 7,
-                                new_event==106&next.mar== 102&(m-bMonth)/12<65 ~ 8,
-                                is.na(lag.mar)&new_event == 105 ~1,
-                                is.na(lag.mar)&new_event == 106 ~5,
-                                is.na(lag.mar)&is.na(lag.union)&is.na(next.mar)&is.na(next.union)&new_event<100 ~ mar,
-                                TRUE ~ NA_real_)) %>%
+    data$mar.bf <- dplyr::case_when(data$marbf4 == 001 ~ 1,
+                                    data$marbf4 == 002 ~ 2,
+                                    data$marbf4 == 003 ~ 3,
+                                    data$marbf4 == 004 ~ 4,
+                                    data$marbf4 == 001 & data$lag.union==106 ~ 1,
+                                    data$marbf4 == 001 & data$lag.union==105 ~ 5,
+                                    data$marbf4 == 003 & data$lag.union==106 ~ 3,
+                                    data$marbf4 == 003 & data$lag.union==105 ~ 7,
+                                    data$marbf4 == 004 & data$lag.union==106 ~ 4,
+                                    data$marbf4 == 004 & data$lag.union==105 ~ 8,
+                                    data$marbf4 == 1 & data$lag.union == 105 ~5,
+                                    data$marbf4 == 1 & data$lag.union == 106 ~1,
+                                    data$marbf4 == 3 & data$lag.union == 105 ~7,
+                                    data$marbf4 == 3 & data$lag.union == 106 ~3,
+                                    data$marbf4 == 4 & data$lag.union == 105 ~8,
+                                    data$marbf4 == 4 & data$lag.union == 106 ~4,
+                                    data$marbf4 == 5 & data$lag.union == 105 ~5,
+                                    data$marbf4 == 5 & data$lag.union == 106 ~1,
+                                    data$marbf4 == 6 & data$lag.union == 105 ~7,
+                                    data$marbf4 == 6 & data$lag.union == 106 ~3,
+                                    data$marbf4 == 7 & data$lag.union == 105 ~8,
+                                    data$marbf4 == 7 & data$lag.union == 106 ~4,
+                                    #use next status
+                                    is.na(data$lag.union) & data$marbf4 == 001 & data$next.union==106 ~ 5,
+                                    is.na(data$lag.union) & data$marbf4 == 001 & data$next.union==105 ~ 1,
+                                    is.na(data$lag.union) & data$marbf4 == 003 & data$next.union==106 ~ 7,
+                                    is.na(data$lag.union) & data$marbf4 == 003 & data$next.union==105 ~ 3,
+                                    is.na(data$lag.union) & data$marbf4 == 004 & data$next.union==106 ~ 8,
+                                    is.na(data$lag.union) & data$marbf4 == 004 & data$next.union==105 ~ 4,
+                                    is.na(data$lag.union) & data$marbf4 == 1 & data$next.union == 105 ~1,
+                                    is.na(data$lag.union) & data$marbf4 == 1 & data$next.union == 106 ~5,
+                                    is.na(data$lag.union) & data$marbf4 == 3 & data$next.union == 105 ~3,
+                                    is.na(data$lag.union) & data$marbf4 == 3 & data$next.union == 106 ~7,
+                                    is.na(data$lag.union) & data$marbf4 == 4 & data$next.union == 105 ~4,
+                                    is.na(data$lag.union) & data$marbf4 == 4 & data$next.union == 106 ~8,
+                                    is.na(data$lag.union) & data$marbf4 == 5 & data$next.union == 105 ~1,
+                                    is.na(data$lag.union) & data$marbf4 == 5 & data$next.union == 106 ~5,
+                                    is.na(data$lag.union) & data$marbf4 == 6 & data$next.union == 105 ~3,
+                                    is.na(data$lag.union) & data$marbf4 == 6 & data$next.union == 106 ~7,
+                                    is.na(data$lag.union) & data$marbf4 == 7 & data$next.union == 105 ~4,
+                                    is.na(data$lag.union) & data$marbf4 == 7 & data$next.union == 106 ~8,
+                                    #new event == 105 106 not marbf4
+                                    data$marbf4 == 1 & data$new_event == 105 ~1,
+                                    data$marbf4 == 1 & data$new_event == 106 ~5,
+                                    data$marbf4 == 3 & data$new_event == 105 ~3,
+                                    data$marbf4 == 3 & data$new_event == 106 ~7,
+                                    data$marbf4 == 4 & data$new_event == 105 ~4,
+                                    data$marbf4 == 4 & data$new_event == 106 ~8,
+                                    data$marbf4 == 5 & data$new_event == 105 ~1,
+                                    data$marbf4 == 5 & data$new_event == 106 ~5,
+                                    data$marbf4 == 6 & data$new_event == 105 ~3,
+                                    data$marbf4 == 6 & data$new_event == 106 ~7,
+                                    data$marbf4 == 7 & data$new_event == 105 ~4,
+                                    data$marbf4 == 7 & data$new_event == 106 ~8,
+                                    data$new_event==105 & data$next.mar== 101 ~ 1,
+                                    data$new_event==106 & data$next.mar== 101 ~ 5,
+                                    data$new_event==105 & data$next.mar== 102 & (data$m-data$bMonth)/12>=65 ~ 3,
+                                    data$new_event==105 & data$next.mar== 102 & (data$m-data$bMonth)/12<65 ~ 4,
+                                    data$new_event==106 & data$next.mar== 102 & (data$m-data$bMonth)/12>=65 ~ 7,
+                                    data$new_event==106 & data$next.mar== 102 & (data$m-data$bMonth)/12<65 ~ 8,
+                                    is.na(data$lag.mar) & data$new_event == 105 ~1,
+                                    is.na(data$lag.mar) & data$new_event == 106 ~5,
+                                    is.na(data$lag.mar) & is.na(data$lag.union) & is.na(data$next.mar) & is.na(data$next.union) & data$new_event<100 ~ data$mar,
+                                    TRUE ~ NA_real_)
+    
+    data <- data %>%
       relocate(mar.bf, .after = new_event) %>%
       select(-lag.mar, -next.mar, -next.mar.age, -lag.union, -next.union, -next.union.age, -marbf4)
-    data
+
     data <- data %>% select(-event)
     names(data)[4] <- "event"   ## change name of new event to do
   }
@@ -3031,27 +3036,27 @@ clear.defined <- function(data, param, code, csv, dobm, dob, intw, eventm, dup){
     name <- paste0(title, ", User-defined", sep = "")
     #Screen 2: Duplicates and logic detectors
     data <- screen2.def.cmc(data, code)
-    # error_data <- data %>%
-    #   filter(rowSums(!is.na(cbind(err1, err2, err3, err4, err5, err6, err7,
-    #                               err8, err9, err10, err11, err12)), na.rm = TRUE)>0) %>%
-    #   select(c(ID:m, err1:err12))
-    #description <- define.descrip(mode = "defined")
-    #error <- error.summary(error_data, description)
+    error_data <- data %>%
+      filter(rowSums(!is.na(cbind(err1, err2, err3, err4, err5, err6, err7,
+                                  err8, err9, err10, err11, err12)), na.rm = TRUE)>0) %>%
+      select(c(ID:m, err1:err12))
+    description <- define.descrip(mode = "defined")
+    error <- error.summary(error_data, description)
 
     correction <- correction.cmc(data, dob, intw, eventm, dup)
     data <- correction$data
 
-    # if (sum(error$err.sum$count)>0){
-    #   if (sum(dob, intw, eventm, dup) > 0) {
-    #     correction <- correction.cmc(data, dob, intw, eventm, dup)
-    #     data <- correction$data
-    #     write.correction.report(error, correction, name)
-    #   } else {
-    #     write.error.report(error, name)
-    #   }
-    # } else {
-    #   print("There is no error.")
-    # }
+    if (sum(error$err.sum$count)>0){
+      if (sum(dob, intw, eventm, dup) > 0) {
+        correction <- correction.cmc(data, dob, intw, eventm, dup)
+        data <- correction$data
+        write.correction.report(error, correction, name)
+      } else {
+        write.error.report(error, name)
+      }
+    } else {
+      print("There is no error.")
+    }
 
     #添加events列
     data <- data %>% group_by(ID) %>%

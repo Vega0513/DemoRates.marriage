@@ -22,10 +22,10 @@
 #' @param plot Either \code{TRUE} or \code{FALSE}.
 #'     If \code{TRUE}, the graph of the comparison between the direct estimations and the Poisson regression results are generated for users. If \code{FALSE}, no plot file is generated. By default, \code{plot = FALSE}.
 #' @param sex Only available for covariate method. Either \code{TRUE} or \code{FALSE}.
-#'     If \code{TRUE}, gender is considered as a factor in estimation. By default, \code{plot = TRUE}.
+#'     If \code{TRUE}, gender is considered as a factor in estimation. Please note that fertility rates are computed only for female. By default, \code{plot = TRUE}.
 #' @param method Only available for subset method. Choose the estimation model. Either \code{NA}, "Poisson".
 #'     If \code{NA}, only direct calculated results will be output. By default, \code{method = NA}.
-#' @param mfp Choose whether to use mfp package or DemoRates-defined function selection process to run Poisson estimation.
+#' @param mfp Choose whether to use mfp package or DemoRates-defined function selection process to run Poisson estimation. This option is only for marriage estimation.
 #'     Either \code{TRUE} or \code{FALSE}. If \code{TRUE}, mfp package is used. By default, \code{mfp = TRUE}.
 #' @param sep.last When split the time interval, decide whether the reminder time period is together with the last time session or not.
 #'     Either \code{TRUE} or \code{FALSE}. If \code{TRUE}, the reminder time is separated. By default, \code{sep.last = TRUE}.
@@ -173,17 +173,15 @@ run.rates <- function(file=NA, csv=FALSE, para=NA, plot=FALSE, sex=TRUE, method=
             run.marriage.rates.covar(data, param, code, plot, sex, mfp)
           }
 
-        }
+        } else if (ratetype == 2) {       #fertility
 
-        # else if (ratetype == 2) {       #fertility
-        #
-        #   if (nCovariant==0){                       ## subset method
-        #     run.fertility.rates(data, param, code, plot, method, mfp)
-        #   } else if (nCovariant==1){                ## covariant method
-        #     run.fertility.rates.covar(data, param, code, plot, sex, mfp)
-        #   }
-        #
-        # }
+          if (nCovariant==0){                       ## subset method
+            run.fertility.rates(data, param, code, plot, method, mfp)
+          } else if (nCovariant==1){                ## covariant method
+            run.fertility.rates.covar(data, param, code, plot, sex, mfp)
+          }
+
+        }
 
 
       # else if (nFunction==2){           #migration
@@ -572,15 +570,10 @@ oe.raw <- function(data, nl, nh, status, evt, nWeight){
     raw.event <- aggregate(d0$event * d0$weight, list(d0$age), sum)
     raw.event <- left_join(age, raw.event, by = "Group.1")
 
-    if(sum(raw.event$x, na.rm = T) < 30){
-      #if number of events <30, not estimate, set all as NA
-      oe <- data.frame(age=seq(nl, nh, 1), raw.rates=NA)
-    } else{
-      #compute raw rates
-      oe <- data.frame(raw.event$Group.1, raw.event$x/t.py$x)
-      names(oe) <- c("age", "raw.rates")
-      oe[,2] <- round(oe[,2], 10)
-    }
+    #compute raw rates: direct calculation does not consider 30 cases
+    oe <- data.frame(raw.event$Group.1, raw.event$x/t.py$x)
+    names(oe) <- c("age", "raw.rates")
+    oe[,2] <- round(oe[,2], 10)
 
   }
 
@@ -1923,7 +1916,8 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
   #  Returns:
   #   pred (vector): 对应拟合结果
   # pred <- fpPoisson("event", "age", "sex", weights = "weight", data=d0, pred.data = pred.data)
-  # depvar="event"; fpvar="age";byvar="sex";weights = "py";data=d0;
+  # depvar="event"; fpvar="age";byvar="sex region";weights = "py";data=d0;pred.data = d0;
+
 
   #检查数据中是否有所需变量
   depin <- depvar %in% names(data)
@@ -1943,7 +1937,7 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
         data_group <- aggregate(eval(parse(text = paste0("data$", weights))),
                                 list(eval(parse(text = paste0("data$", fpvar))),
                                      eval(parse(text = paste0("data$", depvar)))),
-                                sum)
+                                sum)  # 同组别的py做汇总，e.g. 0.083*2+0.083*3
         colnames(data_group) = c(fpvar, depvar, weights)
         data_group <- arrange(data_group, fpvar, depvar)
         #对汇总后数据调用selectfp
@@ -1993,7 +1987,20 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
   pred <- c()
 
   pred.fp <- eval(parse(text = paste0("pred.data$", fpvar)))
-  pred.fp <- pred.fp / fpmodel$scale
+  X <- pred.fp / fpmodel$scale
+  fp <-
+    data.frame(X ^ (-2), X ^ (-1), X ^ (-0.5), log(X), X ^ 0.5, X, X ^ 2, X ^ 3)
+  fp_log <- data.frame(
+    X ^ (-2) * log(X),
+    X ^ (-1) * log(X),
+    X ^ (-0.5) * log(X),
+    log(X) * log(X),
+    X ^ 0.5 * log(X),
+    X * log(X),
+    X ^ 2 * log(X),
+    X ^ 3 * log(X)
+  )
+
   pow <- c(-2,-1,-0.5,0,0.5,1,2,3)
   k <- 17; rem <- list()
   for (i in 1:7){
@@ -2012,36 +2019,42 @@ fpPoisson <- function(depvar, fpvar, byvar = NA, weights = NA, data, pred.data){
   }
 
   m <- fpmodel$power
+  # (revised)
   if(m>=1 && m<=8){
     # pred.data$'fp...i.' <- pred.fp^pow[m]
-    pred.data$'fp1' <- pred.fp^pow[m]
+    # pred.data$'fp1' <- pred.fp^pow[m]
+    pred.data$'fp1' <- fp[, m]
     pred <- predict(fpmodel$model, pred.data, type="response")
   }else if(m>=9 && m<=16){
     # pred.data$'fp...i.' <- pred.fp^pow[m-8]
-    pred.data$'fp1' <- pred.fp^pow[m-8]
+    # pred.data$'fp1' <- pred.fp^pow[m-8]
+    pred.data$'fp1' <- fp[, m-8]
     # pred.data$'fp_log...i.' <- pred.fp^pow[m-8]*log(pred.fp)
-    pred.data$'fp2' <- pred.fp^pow[m-8]*log(pred.fp)
+    # pred.data$'fp2' <- pred.fp^pow[m-8]*log(pred.fp)
+    pred.data$'fp2' <- fp_log[, m-8]
     pred <- predict(fpmodel$model, pred.data, type="response")
   }else{
     # pred.data$'fp...i.' <- pred.fp^pow[rem[[m]]][1]
     # pred.data$'fp1' <- pred.fp^pow[rem[[m]]][1]
-    if (pow[rem[[m]]][1] == 0){
-      pred.data$'fp1' = log(pred.fp)
-    }else{
-      pred.data$'fp1' <- pred.fp^pow[rem[[m]]][1]
-    }
-    # pred.data$'fp...j.' <- pred.fp^pow[rem[[m]]][2]
-    if (pow[rem[[m]]][2] == pow[rem[[m]]][1]){
-      pred.data$'fp2' <- pred.fp^pow[rem[[m]]][1] * log(pred.fp)
-    }else if(pow[rem[[m]]][2] == 0){
-      pred.data$'fp2' <- log(pred.fp)
-    }else{
-      pred.data$'fp2' <- pred.fp^pow[rem[[m]]][2]
-    }
+    # if (pow[rem[[m]]][1] == 0){
+    #   pred.data$'fp1' = log(pred.fp)
+    # }else{
+    #   pred.data$'fp1' <- pred.fp^pow[rem[[m]]][1]
+    # }
+    # # pred.data$'fp...j.' <- pred.fp^pow[rem[[m]]][2]
+    # if (pow[rem[[m]]][2] == pow[rem[[m]]][1]){
+    #   pred.data$'fp2' <- pred.fp^pow[rem[[m]]][1] * log(pred.fp)
+    # }else if(pow[rem[[m]]][2] == 0){
+    #   pred.data$'fp2' <- log(pred.fp)
+    # }else{
+    #   pred.data$'fp2' <- pred.fp^pow[rem[[m]]][2]
+    # }
     # pred.data$'fp2' <- pred.fp^pow[rem[[m]]][2]
+    pred.data$'fp1' <- fp[, rem[[m]][1]]
+    pred.data$'fp2' <- fp[, rem[[m]][2]]
     pred <- predict(fpmodel$model, pred.data, type="response")
   }
-
+  # (revise over)
   return(pred)
 }
 

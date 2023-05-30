@@ -111,7 +111,7 @@ run.marriage.rates <- function(data, param, code, plot, method, mfp) {
     #estimate overall rates
     combined <- compute.four(data_oe, data_freq, plot=plot, param=param, plot.name=combined.name, method, mfp)
     #output overall rates
-    write.rates.four.sex(combined$oe.rates, combined$frequency, param, combined.name,  paste0(method, " estimate", sep=""))
+    write.rates.four.sex(combined$oe.rates, combined$frequency, param, combined.name, paste0(method, " estimate", sep=""))
     write.rates.four.sex(combined$raw.oe.rates, combined$raw.frequency, param, combined.name, "Direct calculate")
 
     # if do not estimate by any variable,

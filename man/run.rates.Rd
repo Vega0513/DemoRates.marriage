@@ -26,12 +26,12 @@ run.rates(
 If \code{TRUE}, the graph of the comparison between the direct estimations and the Poisson regression results are generated for users. If \code{FALSE}, no plot file is generated. By default, \code{plot = FALSE}.}
 
 \item{sex}{Only available for covariate method. Either \code{TRUE} or \code{FALSE}.
-If \code{TRUE}, gender is considered as a factor in estimation. By default, \code{plot = TRUE}.}
+If \code{TRUE}, gender is considered as a factor in estimation. Please note that fertility rates are computed only for female. By default, \code{plot = TRUE}.}
 
 \item{method}{Only available for subset method. Choose the estimation model. Either \code{NA}, "Poisson".
 If \code{NA}, only direct calculated results will be output. By default, \code{method = NA}.}
 
-\item{mfp}{Choose whether to use mfp package or DemoRates-defined function selection process to run Poisson estimation.
+\item{mfp}{Choose whether to use mfp package or DemoRates-defined function selection process to run Poisson estimation. This option is only for marriage estimation.
 Either \code{TRUE} or \code{FALSE}. If \code{TRUE}, mfp package is used. By default, \code{mfp = TRUE}.}
 
 \item{sep.last}{When split the time interval, decide whether the reminder time period is together with the last time session or not.

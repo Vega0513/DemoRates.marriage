@@ -1,6 +1,6 @@
 Package: DemoRates.marriage
 Type: Package
-Title: Marriage and Cohabitation Rates Estimation
+Title: Marriage/Union and Fertility Rates Estimation
 Version: 0.1.0
 Author: Zhenglian Wang [aut, cre], 
     Qiushi Feng [aut], 
