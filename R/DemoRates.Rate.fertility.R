@@ -212,121 +212,6 @@ run.fertility.rates <- function(data, param, code, plot, method, mfp) {
       
     }
     
-    #### "reg.ru": should be okay, but have not been tested ####
-    
-    #special case: by region and rural/urban
-    if (subset=="reg.ru"){
-      
-      #overall total rates
-      total.rates <- combined$total.rates
-      #add an empty row to indicate variable name when output total rates file
-      total.rates <- rbind(NA, total.rates)
-      #overall mean ages
-      mean.age <- combined$mean.age
-      #add an empty row to indicate variable name when output total rates file
-      mean.age <- rbind(NA, mean.age)
-      
-      #define general row names
-      rowname <- c("Total rates - All region combined",
-                   "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-      total.rates <- cbind(rowname, total.rates)
-      rowname <- c("Mean age - All region combined",
-                   "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-      mean.age <- cbind(rowname, mean.age)
-      
-      ## Set rates as NA first, change later if cal_oe/cal_freq==T
-      data_oe.i <- data_oe.ru <- data_oe.ub <- NA
-      data_freq.i <- data_freq.ru <- data_freq.ub <- NA
-      
-      #for each region
-      for(k in 1:length(region_list[[1]])){
-        #code
-        i <- region_list[[1]][k]
-        #name
-        i.name <- region_list[[2]][k]
-        
-        #surfix
-        i.code <- paste0(", ", i.name, sep="")
-        i.code1 <- paste0(", ", i.name, "-rural", sep="")
-        i.code2 <- paste0(", ", i.name, "-urban", sep="")
-        
-        if (cal_oe==T){
-          #subset each region oe data
-          data_oe.i <- data_oe[which(data_oe$region==i),]
-          #subset each region rural oe data
-          data_oe.ru <- data_oe[which(data_oe$ru == 1&data_oe$region==i),]
-          #subset each region urban oe data
-          data_oe.ub <- data_oe[which(data_oe$ru == 2&data_oe$region==i),]
-          
-          #generate each region, each region rural/urban pop tables
-          pop.i <- pop.count.fert(data_oe.i, nr2, nlb, nhm)
-          pop.ru <- pop.count.fert(data_oe.ru, nr2, nlb, nhm)
-          pop.ub <- pop.count.fert(data_oe.ub, nr2, nlb, nhm)
-          
-          write.pop.fert(pop.i, param, name = i.code)
-          write.pop.fert(pop.ru, param, name = i.code1)
-          write.pop.fert(pop.ub, param, name = i.code2)
-          
-        }
-        
-        if (cal_freq==T){
-          
-          #subset each region freq data
-          data_freq.i <- data_freq[which(data_freq$region==i),]
-          #subset each region rural freq data
-          data_freq.ru <- data_freq[which(data_freq$ru == 1&data_freq$region==i),]
-          #subset each region urban freq data
-          data_freq.ub <- data_freq[which(data_freq$ru == 2&data_freq$region==i),]
-          
-          if (cal_oe==F){
-            
-            #generate pop table if did not generate in previous step
-            pop.i <- pop.count.fert(data_freq.i, nr2, nlb, nhb)
-            pop.ru <- pop.count.fert(data_freq.ru, nr2, nlb, nhb)
-            pop.ub <- pop.count.fert(data_freq.ub, nr2, nlb, nhb)
-            
-            write.pop.fert(pop.i, param, name = i.code)
-            write.pop.fert(pop.ru, param, name = i.code1)
-            write.pop.fert(pop.ub, param, name = i.code2)
-            
-          }
-        }
-        
-        #estimate rates for ith region
-        region <- compute.fert(data_oe.i, data_freq.i, plot=plot, param=param, plot.name=i.code, method, mfp)
-        
-        #estimate rates for ith region rural
-        region_ru <- compute.fert(data_oe.ru, data_freq.ru, plot=plot, param=param, plot.name=i.code1, method, mfp)
-        #estimate rates for ith region urban
-        region_ub <- compute.fert(data_oe.ub, data_freq.ub, plot=plot, param=param, plot.name=i.code2, method, mfp)
-        
-        #output rates
-        write.rates.fert(region_ru$oe.rates, region_ru$frequency, param, i.code1,  paste0(method, " estimate", sep=""))
-        write.rates.fert(region_ru$raw.oe.rates, region_ru$raw.frequency, param, i.code1, "Direct calculate")
-        
-        write.rates.fert(region_ub$oe.rates, region_ub$frequency, param, i.code2,  paste0(method, " estimate", sep=""))
-        write.rates.fert(region_ub$raw.oe.rates, region_ub$raw.frequency, param, i.code2, "Direct calculate")
-        
-        #format total rates and mean age results
-        total.rates_re <- rbind(NA, region$total.rates, NA, region_ru$total.rates, NA, region_ub$total.rates)
-        mean.age_re <- rbind(NA, region$mean.age, NA, region_ru$mean.age, NA, region_ub$mean.age)
-        rowname <- c("Total rates - Rural/urban Combined",
-                     "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Rural", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Urban", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-        total.rates_re <- cbind(rowname, total.rates_re)
-        total.rates <- rbind(total.rates, total.rates_re)
-        rowname <- c("Mean age - Rural/urban Combined",
-                     "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Rural", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Urban", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-        mean.age_re <- cbind(rowname, mean.age_re)
-        mean.age <- rbind(mean.age, mean.age_re)
-      }
-      
-      write.total.fert.subset(total.rates, mean.age, param, "-region by residence", marsuff)
-    }
-    
   } else{
     
     #### estimate by marital status ####
@@ -334,7 +219,7 @@ run.fertility.rates <- function(data, param, code, plot, method, mfp) {
     #generate pop table: # of risk population and # of events
     #used to check direct calculation results
     if (cal_oe==T){
-      pop <- pop.count.fertM(data_oe, nr2, nlb, nhb)
+      pop <- pop.count.fertM(data_oe, param, nr2, nlb, nhb)
       write.pop.fertM(pop, param, name = combined.name)
     }
     
@@ -342,7 +227,7 @@ run.fertility.rates <- function(data, param, code, plot, method, mfp) {
       #if have not generated pop table in the previous step (oe), generate it.
       #if have already generated, omit.
       if (cal_oe==F){
-        pop <- pop.count.fertM(data_freq, nr2, nlb, nhb)
+        pop <- pop.count.fertM(data_freq, param, nr2, nlb, nhb)
         write.pop.fertM(pop, param, name =  combined.name)
       }
     }
@@ -401,7 +286,7 @@ run.fertility.rates <- function(data, param, code, plot, method, mfp) {
           data_oe.i <- data_oe[which(eval(parse(text=paste("data_oe$",subset,sep="")))==i),]
           
           #generate pop table: # of risk population and # of events
-          pop <- pop.count.fertM(data_oe.i, nr2, nlb, nhb)
+          pop <- pop.count.fertM(data_oe.i, param, nr2, nlb, nhb)
           write.pop.fertM(pop, param, i.code)
         }
         
@@ -413,7 +298,7 @@ run.fertility.rates <- function(data, param, code, plot, method, mfp) {
           if (cal_oe==F){
             # if do not estimate by any variable,
             # generate and output overall total rates and mean ages
-            pop <- pop.count.fertM(data_freq.i, nr2, nlb, nhb)
+            pop <- pop.count.fertM(data_freq.i, param, nr2, nlb, nhb)
             write.pop.fertM(pop, param, i.code)
           }
           
@@ -448,117 +333,854 @@ run.fertility.rates <- function(data, param, code, plot, method, mfp) {
     }
     
     
-    #special case: by region and rural/urban
-    if (subset=="reg.ru"){
+  }
+}
+
+##main function for covariate method
+run.fertility.rates.covar <- function(data, param, code, plot, mfp) {
+  
+  #### Parameters loading and data preparing ####
+  
+  nlb <- as.numeric(param$nlb)
+  nhb <- as.numeric(param$nhb)
+  nr2 <- as.numeric(param$nr2)
+  fertM <- as.numeric(param$fertM)
+  cohabit <- as.numeric(param$cohabit)
+  marital <- ifelse(fertM==0, 0, ifelse(fertM==1&cohabit==0, 4, 7))
+  t1Month <- as.numeric(param$t1Month)
+  t2Month <- as.numeric(param$t2Month)
+  nrj <- as.numeric(param$nrj)
+  nRegion <- as.numeric(param$nRegion)
+  edu <- as.numeric(param$edu)
+  nRace <- as.numeric(param$nRace)
+  nWeight <- as.numeric(param$nWeight)
+  nrate <- as.numeric(param$nRate)
+  
+  
+  #region list
+  if (nRegion>1){
+    region_tmp<- code %>% select(`Region Code`, `Region Name`)
+    names(region_tmp) <- c("code", "name")
+    region_tmp <- region_tmp %>% filter(!is.na(name))
+    region_list <- as.list(region_tmp)
+  }
+  
+  #race list
+  if (nRace>1){
+    race_tmp<- code %>% select(`Race Code`, `Race Name`)
+    names(race_tmp) <- c("code", "name")
+    race_tmp <- race_tmp %>% filter(!is.na(name))
+    race_list <- as.list(race_tmp)
+  }
+  
+  #Set output table and graph name surfix
+  if(nRegion == 1 & nRace == 1 & nrj == 1 & edu == 0){
+    combined.name <- ""
+  } else {
+    combined.name <- ", all"
+  }
+  
+  
+  #prepare oe & freq data
+  #change wide data into long data (1 person month/row)
+  data_oe <- data_freq <- NA
+  #set variables indicating whether to calculate oe or frequency
+  cal_freq <- cal_oe <- F
+  
+  if (nrate==1){
+    cal_freq <- cal_oe <- T
+    data_oe <- data_freq <- data.prepare.birth(data, marital, nr2, t1Month, t2Month, nlb, nhb)
+  } else if (nrate==2){          #only oe
+    cal_oe <- T
+    data_oe <- data.prepare.birth(data, marital, nr2, t1Month, t2Month, nlb, nhb)
+  } else if (nrate==3){          #only freq
+    cal_freq <- T
+    data_freq <- data.prepare.birth(data, marital, nr2, t1Month, t2Month, nlb, nhb)
+  }
+  
+
+  ## Common settings for all cases ##
+  
+  
+  ##estimate by what variable? define "byvar" according to parameters
+  #sex.nosex -- general estimation, not by any factor
+  if (nRegion == 1 & nrj == 1 & nRace == 1 & edu == 0) {byvar<- "sex.nosex"}
+  #region.nosex -- only by region
+  if (nRegion > 1 & nRegion <= 100 & nrj == 1 & nRace == 1 & edu == 0) {byvar<- "region.nosex"}
+  #ru.nosex -- only by rural/urban
+  if (nRegion == 1 & nrj == 2 & nRace == 1 & edu == 0) {byvar<- "ru.nosex"}
+  #race.nosex -- only by race
+  if (nRegion == 1 & nrj == 1 & nRace > 1 & edu == 0) {byvar<- "race.nosex"}
+  #reg.ru.nosex -- by region & rural/urban
+  if (nrj==2 & nRegion > 1 & nRegion <= 100 & nRace == 1 & edu == 0) {byvar<- "reg.ru.nosex"}
+
+  #set row names for final total rates output: same for all cases
+  rowname <- c("Direct calculate", "Poisson estimate", "Difference%")
+  
+  if (fertM==0){marsuff <- ""} else if (fertM==1){marsuff <- paste0(" ", marital, " marital status")}
+  
+  
+  if(fertM == 0){
+    
+    #### estimate not by marital status ####
+    
+    #estimated oe, raw oe, estimated freq, raw freq:
+    #The result is for all cases
+    est.covar <- compute.fert.covar(data_oe, data_freq, param, code, plot, plot.name=combined.name, byvar, mfp)
+    
+    ## Set rates as NA first, change later if cal_oe/cal_freq==T
+    if (byvar=="reg.ru.nosex"){
+      # for reg.ru & reg.ru.nosex only
+      oe.rates.ru <- raw.oe.rates.ru <- frequency.ru <- raw.frequency.ru <- NA
+      oe.rates.ub <- raw.oe.rates.ub <- frequency.ub <- raw.frequency.ub <- NA
+    } else {
+      # for all cases other than reg.ru & reg.ru.nosex
+      oe.rates <- raw.oe.rates <- frequency <- raw.frequency <- NA
+    }
+    
+    ## generate empty data frames to store total rates and mean ages
+    if (byvar=="reg.ru.nosex"){
+      # for reg.ru & reg.ru.nosex only
+      total.rates.ru <- data.frame(t(rep(NA, 10)))[F,]
+      total.rates.ub <- data.frame(t(rep(NA, 10)))[F,]
+      mean.age.ru <- data.frame(t(rep(NA, 10)))[F,]
+      mean.age.ub <- data.frame(t(rep(NA, 10)))[F,]
+    } else {
+      # for all cases other than reg.ru & reg.ru.nosex
+      total.rates <- data.frame(t(rep(NA, 8)))[F,]
+      mean.age <- data.frame(t(rep(NA, 8)))[F,]
+    }
+    
+    
+    #Case sex.nosex
+    if (byvar=="sex.nosex") {
       
-      #overall total rates
-      total.rates <- combined$total.rates
-      #add an empty row to indicate variable name when output total rates file
-      total.rates <- rbind(NA, total.rates)
-      #overall mean ages
-      mean.age <- combined$mean.age
-      #add an empty row to indicate variable name when output total rates file
-      mean.age <- rbind(NA, mean.age)
-      
-      #define general row names
-      rowname <- c("Total rates - All region combined",
-                   "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-      total.rates <- cbind(rowname, total.rates)
-      rowname <- c("Mean age - All region combined",
-                   "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-      mean.age <- cbind(rowname, mean.age)
-      
-      ## Set rates as NA first, change later if cal_oe/cal_freq==T
-      data_oe.i <- data_oe.ru <- data_oe.ub <- NA
-      data_freq.i <- data_freq.ru <- data_freq.ub <- NA
-      
-      #for each region
-      for(k in 1:length(region_list[[1]])){
-        #code
-        i <- region_list[[1]][k]
-        #name
-        i.name <- region_list[[2]][k]
+      if (cal_oe==T){
         
-        #surfix
+        #generate pop table: # of risk population and # of events
+        pop <- pop.count.fert(data_oe, nr2, nlb, nhb)
+        write.pop.fert(pop, param, name = combined.name)
+        
+        #extract estimated oe and raw oe
+        oe.rates <- est.covar$oe.rates %>% arrange(age)
+        raw.oe.rates <- est.covar$raw.oe.rates %>% arrange(age)
+        
+      }
+      
+      if (cal_freq==T){
+        
+        #if have not generated pop table in the previous step (oe), generate it.
+        #if have already generated, omit.
+        if(cal_oe==F){
+          pop <- pop.count.fert(data_freq, nr2, nlb, nhb)
+          write.pop.fert(pop, param, name = combined.name)
+        }
+        
+        #extract estimated freq and raw freq
+        frequency <- est.covar$frequency %>% arrange(age)
+        raw.frequency <- est.covar$raw.frequency %>% arrange(age)
+        
+        #Calculate estimated total rates and mean age based on estimated freq.
+        frequency$All <- tmp.rowSum.w.na(frequency[2:ncol(frequency)])
+        frequency <- frequency %>% relocate(All, .after = age)
+        
+        est.total.rates <- total.freq(frequency)
+        est.mean.age <- mean.age.cal(frequency)
+        
+        freq.total <- data.frame(age = "Total", total.freq(frequency))
+        frequency <- rbind(frequency, freq.total)
+        rm(freq.total)
+        
+        #Calculate raw total rates and mean age based on raw freq.
+        raw.frequency$All <- tmp.rowSum.w.na(raw.frequency[2:ncol(raw.frequency)])
+        raw.frequency <- raw.frequency %>% relocate(All, .after = age)
+        
+        raw.total.rates <- total.freq(raw.frequency)
+        raw.mean.age <- mean.age.cal(raw.frequency)
+        
+        freq.total <- data.frame(age = "Total", total.freq(raw.frequency))
+        raw.frequency <- rbind(raw.frequency, freq.total)
+        rm(freq.total)
+        
+        #combine estimated and raw total rates and frequencies, and calculate difference
+        total.rates <- rbind(raw.total.rates, est.total.rates, (est.total.rates-raw.total.rates)/raw.total.rates)
+        mean.age <- rbind(raw.mean.age, est.mean.age, (est.mean.age-raw.mean.age)/raw.mean.age)
+        total.rates <- do.call(data.frame, lapply(total.rates, function(x) replace(x, is.infinite(x), NA)))
+        
+        write.total.fert.covar(total.rates, mean.age, param, combined.name, marsuff)
+        
+      }
+      
+      #output estimated rates
+      write.rates.fert(oe.rates, frequency, param, combined.name, "Poisson estimate")
+      #output raw rates
+      write.rates.fert(raw.oe.rates, raw.frequency, param, combined.name, "Direct calculate")
+      
+    }
+    
+    
+    # if by rural/urban, region, race, edu
+    if (byvar %in% c("ru.nosex", "region.nosex", "race.nosex")){
+      
+      #define code list & varable name
+      if (byvar=="region.nosex"){
+        i.list <- region_list
+        var <- "region"
+      } else if (byvar=="ru.nosex") {
+        i.list <- list(code=c(1,2), name=c("rural", "urban"))
+        var <- "ru"
+      } else if (byvar=="race.nosex"){
+        i.list <- race_list
+        var <- "race"
+      }
+      
+      #run for each list code
+      for(k in 1:length(i.list[[1]])){
+        
+        #code
+        i <- i.list[[1]][k]
+        #name
+        i.name <- i.list[[2]][k]
+        #code for rowname
+        i.rowname <- rep(i.name, 3)
+        #code for output surfix
         i.code <- paste0(", ", i.name, sep="")
-        i.code1 <- paste0(", ", i.name, "-rural", sep="")
-        i.code2 <- paste0(", ", i.name, "-urban", sep="")
         
         if (cal_oe==T){
-          #subset each region oe data
-          data_oe.i <- data_oe[which(data_oe$region==i),]
-          #subset each region rural oe data
-          data_oe.ru <- data_oe[which(data_oe$ru == 1&data_oe$region==i),]
-          #subset each region urban oe data
-          data_oe.ub <- data_oe[which(data_oe$ru == 2&data_oe$region==i),]
           
-          #generate each region, each region rural/urban pop tables
-          pop.i <- pop.count.fertM(data_oe.i, nr2, nlb, nhm)
-          pop.ru <- pop.count.fertM(data_oe.ru, nr2, nlb, nhm)
-          pop.ub <- pop.count.fertM(data_oe.ub, nr2, nlb, nhm)
+          #generate pop table: # of risk population and # of events
+          pop <- pop.count.fert(data_oe[which(eval(parse(text=paste("data_oe$",var,sep="")))==i),], nr2, nlb, nhb)
+          write.pop.fert(pop, param, i.code)
           
-          write.pop.fertM(pop.i, param, name = i.code)
-          write.pop.fertM(pop.ru, param, name = i.code1)
-          write.pop.fertM(pop.ub, param, name = i.code2)
+          #extract estimated & direct calculated oe rates from estimation result
+          oe.rates <- est.covar$oe.rates
+          raw.oe.rates <- est.covar$raw.oe.rates
+          #keep oe rates by variable
+          oe.rates <- oe.rates[which(eval(parse(text = paste("oe.rates$",var,sep=""))) == i), -which(names(oe.rates)==var)] %>% arrange(age)
+          raw.oe.rates <- raw.oe.rates[which(eval(parse(text = paste("raw.oe.rates$",var,sep=""))) == i), -which(names(raw.oe.rates)==var)] %>% arrange(age)
           
         }
         
         if (cal_freq==T){
           
-          #subset each region freq data
-          data_freq.i <- data_freq[which(data_freq$region==i),]
-          #subset each region rural freq data
-          data_freq.ru <- data_freq[which(data_freq$ru == 1&data_freq$region==i),]
-          #subset each region urban freq data
-          data_freq.ub <- data_freq[which(data_freq$ru == 2&data_freq$region==i),]
-          
           if (cal_oe==F){
             
-            #generate pop table if did not generate in previous step
-            pop.i <- pop.count.fertM(data_freq.i, nr2, nlb, nhb)
-            pop.ru <- pop.count.fertM(data_freq.ru, nr2, nlb, nhb)
-            pop.ub <- pop.count.fertM(data_freq.ub, nr2, nlb, nhb)
-            
-            write.pop.fertM(pop.i, param, name = i.code)
-            write.pop.fertM(pop.ru, param, name = i.code1)
-            write.pop.fertM(pop.ub, param, name = i.code2)
+            #if have not generated pop table in the previous step (oe), generate it.
+            #if have already generated, omit.
+            pop <- pop.count.fert(data_freq[which(eval(parse(text=paste("data_freq$",var,sep="")))==i),], nr2, nlb, nhb)
+            write.pop.fert(pop, param, i.code)
             
           }
+          
+          #extract estimated & direct calculated freq rates from estimation result
+          frequency <- est.covar$frequency
+          raw.frequency <- est.covar$raw.frequency
+          #keep freq rates by variable
+          frequency <- frequency[which(eval(parse(text = paste("frequency$",var,sep=""))) == i), -which(names(frequency)==var)] %>% arrange(age)
+          raw.frequency <- raw.frequency[which(eval(parse(text = paste("raw.frequency$",var,sep=""))) == i), -which(names(raw.frequency)==var)] %>% arrange(age)
+          
+          #Calculate estimated total rates and mean age based on estimated freq.
+          frequency$All <- tmp.rowSum.w.na(frequency[2:ncol(frequency)])
+          frequency <- frequency %>% relocate(All, .after = age)
+          
+          est.total.rates <- total.freq(frequency)
+          est.mean.age <- mean.age.cal(frequency)
+          
+          freq.total <- data.frame(age = "Total", total.freq(frequency))
+          frequency <- rbind(frequency, freq.total)
+          rm(freq.total)
+          
+          #Calculate raw total rates and mean age based on raw freq.
+          raw.frequency$All <- tmp.rowSum.w.na(raw.frequency[2:ncol(raw.frequency)])
+          raw.frequency <- raw.frequency %>% relocate(All, .after = age)
+          
+          raw.total.rates <- total.freq(raw.frequency)
+          raw.mean.age <- mean.age.cal(raw.frequency)
+          
+          freq.total <- data.frame(age = "Total", total.freq(raw.frequency))
+          raw.frequency <- rbind(raw.frequency, freq.total)
+          rm(freq.total)
+          
+          i.total.rates <- rbind(raw.total.rates, est.total.rates, (est.total.rates-raw.total.rates)/raw.total.rates)
+          i.mean.age <- rbind(raw.mean.age, est.mean.age, (est.mean.age-raw.mean.age)/raw.mean.age)
+          i.total.rates <- do.call(data.frame, lapply(i.total.rates, function(x) replace(x, is.infinite(x), NA)))
+          
+          #adjust format for ease of output
+          i.total.rates <- cbind(i.rowname, rowname, i.total.rates)
+          total.rates <- rbind(total.rates, i.total.rates)
+          i.mean.age <- cbind(i.rowname, rowname, i.mean.age)
+          mean.age <- rbind(mean.age, i.mean.age)
+          
         }
         
-        #estimate rates for ith region
-        region <- compute.fertM(data_oe.i, data_freq.i, plot=plot, param=param, plot.name=i.code, method, mfp)
-        
-        #estimate rates for ith region rural
-        region_ru <- compute.fertM(data_oe.ru, data_freq.ru, plot=plot, param=param, plot.name=i.code1, method, mfp)
-        #estimate rates for ith region urban
-        region_ub <- compute.fertM(data_oe.ub, data_freq.ub, plot=plot, param=param, plot.name=i.code2, method, mfp)
-        
         #output rates
-        write.rates.fertM(region_ru$oe.rates, region_ru$frequency, param, i.code1,  paste0(method, " estimate", sep=""))
-        write.rates.fertM(region_ru$raw.oe.rates, region_ru$raw.frequency, param, i.code1, "Direct calculate")
+        write.rates.fert(oe.rates, frequency, param, i.code, "Poisson estimate")
+        write.rates.fert(raw.oe.rates, raw.frequency, param, i.code, "Direct calculate")
         
-        write.rates.fertM(region_ub$oe.rates, region_ub$frequency, param, i.code2,  paste0(method, " estimate", sep=""))
-        write.rates.fertM(region_ub$raw.oe.rates, region_ub$raw.frequency, param, i.code2, "Direct calculate")
-        
-        #format total rates and mean age results
-        total.rates_re <- rbind(NA, region$total.rates, NA, region_ru$total.rates, NA, region_ub$total.rates)
-        mean.age_re <- rbind(NA, region$mean.age, NA, region_ru$mean.age, NA, region_ub$mean.age)
-        rowname <- c("Total rates - Rural/urban Combined",
-                     "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Rural", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Urban", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-        total.rates_re <- cbind(rowname, total.rates_re)
-        total.rates <- rbind(total.rates, total.rates_re)
-        rowname <- c("Mean age - Rural/urban Combined",
-                     "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Rural", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%",
-                     "Urban", "Direct calculate",  paste0(method, " estimate", sep=""), "Difference%")
-        mean.age_re <- cbind(rowname, mean.age_re)
-        mean.age <- rbind(mean.age, mean.age_re)
       }
       
-      write.total.fert.subset(total.rates, mean.age, param, "-region by residence", marsuff)
+      #output total rates
+      write.total.fert.covar(total.rates, mean.age, param, paste0("-by ", var, sep=""), marsuff)
+      
+    }
+    
+  } else{
+    
+    #### estimate by marital status ####
+    
+    #estimated oe, raw oe, estimated freq, raw freq:
+    #The result is for all cases
+    est.covar <- compute.fertM.covar(data_oe, data_freq, param, code, plot, plot.name=combined.name, byvar, mfp)
+    
+    ## Set rates as NA first, change later if cal_oe/cal_freq==T
+    if (byvar=="reg.ru.nosex"){
+      # for reg.ru & reg.ru.nosex only
+      oe.rates.ru <- raw.oe.rates.ru <- frequency.ru <- raw.frequency.ru <- NA
+      oe.rates.ub <- raw.oe.rates.ub <- frequency.ub <- raw.frequency.ub <- NA
+    } else {
+      # for all cases other than reg.ru & reg.ru.nosex
+      oe.rates <- raw.oe.rates <- frequency <- raw.frequency <- NA
+    }
+    
+    ## generate empty data frames to store total rates and mean ages
+    if (byvar=="reg.ru.nosex"){
+      # for reg.ru & reg.ru.nosex only
+      total.rates.ru <- data.frame(t(rep(NA, 10)))[F,]
+      total.rates.ub <- data.frame(t(rep(NA, 10)))[F,]
+      mean.age.ru <- data.frame(t(rep(NA, 10)))[F,]
+      mean.age.ub <- data.frame(t(rep(NA, 10)))[F,]
+    } else {
+      # for all cases other than reg.ru & reg.ru.nosex
+      total.rates <- data.frame(t(rep(NA, 8)))[F,]
+      mean.age <- data.frame(t(rep(NA, 8)))[F,]
+    }
+    
+    
+    if (cohabit==0){
+      
+      #Case sex.nosex
+      if (byvar=="sex.nosex") {
+        
+        if (cal_oe==T){
+          
+          #generate pop table: # of risk population and # of events
+          pop <- pop.count.fertM(data_oe, param, nr2, nlb, nhb)
+          write.pop.fertM(pop, param, name = combined.name)
+          
+          #extract estimated oe and raw oe
+          oe.rates <- est.covar$oe.rates %>% arrange(age)
+          raw.oe.rates <- est.covar$raw.oe.rates %>% arrange(age)
+          
+        }
+        
+        if (cal_freq==T){
+          
+          #if have not generated pop table in the previous step (oe), generate it.
+          #if have already generated, omit.
+          if(cal_oe==F){
+            pop <- pop.count.fertM(data_freq, param, nr2, nlb, nhb)
+            write.pop.fertM(pop, param, name = combined.name)
+          }
+          
+          #extract estimated freq and raw freq
+          frequency <- est.covar$frequency %>% arrange(age)
+          raw.frequency <- est.covar$raw.frequency %>% arrange(age)
+          
+          #Calculate estimated total rates and mean age based on estimated freq.
+          frequency$All <- tmp.rowSum.w.na(frequency[2:ncol(frequency)])
+          frequency <- frequency %>% relocate(All, .after = age)
+          
+          #non marital frequency
+          nonmar.freq <- data.frame(age = frequency$age, All = frequency$All)
+          for (i in 1:nr2) {
+            nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(frequency[seq(2+i,4*nr2+2, by=nr2)]))
+            names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+          }
+          
+          #add non marital and total for each marital status
+          frequency <- data.frame(nonmar.freq, frequency[3:ncol(frequency)])
+          frequency$all.nm <- tmp.rowSum.w.na(frequency[(3+nr2):(2+2*nr2)])
+          frequency$all.m <- tmp.rowSum.w.na(frequency[(3+2*nr2):(2+3*nr2)])
+          frequency$all.d <- tmp.rowSum.w.na(frequency[(3+3*nr2):(2+4*nr2)])
+          frequency$all.w <- tmp.rowSum.w.na(frequency[(3+4*nr2):(2+5*nr2)])
+          
+          frequency <- frequency %>% relocate(all.nm, .before = pnm1.freq)
+          frequency <- frequency %>% relocate(all.m, .before = pm1.freq)
+          frequency <- frequency %>% relocate(all.d, .before = pd1.freq)
+          frequency <- frequency %>% relocate(all.w, .before = pw1.freq)
+          
+          freq.total <- data.frame(age = "Total",  total.freq(frequency))
+          frequency <- rbind(frequency, freq.total)
+          rm(freq.total)
+          
+          est.total.rates <- total.freq(nonmar.freq)
+          est.mean.age <- mean.age.cal(nonmar.freq)
+          
+          #Calculate raw total rates and mean age based on raw freq.
+          raw.frequency$All <- tmp.rowSum.w.na(raw.frequency[2:ncol(raw.frequency)])
+          raw.frequency <- raw.frequency %>% relocate(All, .after = age)
+          
+          #non marital frequency
+          nonmar.freq <- data.frame(age = raw.frequency$age, All = raw.frequency$All)
+          for (i in 1:nr2) {
+            nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(raw.frequency[seq(2+i,4*nr2+2, by=nr2)]))
+            names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+          }
+          
+          #add non marital and total for each marital status
+          raw.frequency <- data.frame(nonmar.freq, raw.frequency[3:ncol(raw.frequency)])
+          raw.frequency$all.nm <- tmp.rowSum.w.na(raw.frequency[(3+nr2):(2+2*nr2)])
+          raw.frequency$all.m <- tmp.rowSum.w.na(raw.frequency[(3+2*nr2):(2+3*nr2)])
+          raw.frequency$all.d <- tmp.rowSum.w.na(raw.frequency[(3+3*nr2):(2+4*nr2)])
+          raw.frequency$all.w <- tmp.rowSum.w.na(raw.frequency[(3+4*nr2):(2+5*nr2)])
+          
+          raw.frequency <- raw.frequency %>% relocate(all.nm, .before = pnm1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.m, .before = pm1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.d, .before = pd1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.w, .before = pw1.freq)
+          
+          raw.total.rates <- total.freq(nonmar.freq)
+          raw.mean.age <- mean.age.cal(nonmar.freq)
+          
+          freq.total <- data.frame(age = "Total", total.freq(raw.frequency))
+          raw.frequency <- rbind(raw.frequency, freq.total)
+          rm(freq.total)
+          
+          #combine estimated and raw total rates and frequencies, and calculate difference
+          total.rates <- rbind(raw.total.rates, est.total.rates, (est.total.rates-raw.total.rates)/raw.total.rates)
+          mean.age <- rbind(raw.mean.age, est.mean.age, (est.mean.age-raw.mean.age)/raw.mean.age)
+          total.rates <- do.call(data.frame, lapply(total.rates, function(x) replace(x, is.infinite(x), NA)))
+          
+          write.total.fert.covar(total.rates, mean.age, param, combined.name, marsuff)
+          
+        }
+        
+        #output estimated rates
+        write.rates.fertM(oe.rates, frequency, param, combined.name, "Poisson estimate")
+        #output raw rates
+        write.rates.fertM(raw.oe.rates, raw.frequency, param, combined.name, "Direct calculate")
+        
+      }
+      
+      
+      # if by rural/urban, region, race, edu
+      if (byvar %in% c("ru.nosex", "region.nosex", "race.nosex")){
+        
+        #define code list & varable name
+        if (byvar=="region.nosex"){
+          i.list <- region_list
+          var <- "region"
+        } else if (byvar=="ru.nosex") {
+          i.list <- list(code=c(1,2), name=c("rural", "urban"))
+          var <- "ru"
+        } else if (byvar=="race.nosex"){
+          i.list <- race_list
+          var <- "race"
+        }
+        
+        #run for each list code
+        for(k in 1:length(i.list[[1]])){
+          
+          #code
+          i <- i.list[[1]][k]
+          #name
+          i.name <- i.list[[2]][k]
+          #code for rowname
+          i.rowname <- rep(i.name, 3)
+          #code for output surfix
+          i.code <- paste0(", ", i.name, sep="")
+          
+          if (cal_oe==T){
+            
+            #generate pop table: # of risk population and # of events
+            pop <- pop.count.fertM(data_oe[which(eval(parse(text=paste("data_oe$",var,sep="")))==i),], param, nr2, nlb, nhb)
+            write.pop.fertM(pop, param, i.code)
+            
+            #extract estimated & direct calculated oe rates from estimation result
+            oe.rates <- est.covar$oe.rates
+            raw.oe.rates <- est.covar$raw.oe.rates
+            #keep oe rates by variable
+            oe.rates <- oe.rates[which(eval(parse(text = paste("oe.rates$",var,sep=""))) == i), -which(names(oe.rates)==var)] %>% arrange(age)
+            raw.oe.rates <- raw.oe.rates[which(eval(parse(text = paste("raw.oe.rates$",var,sep=""))) == i), -which(names(raw.oe.rates)==var)] %>% arrange(age)
+            
+          }
+          
+          if (cal_freq==T){
+            
+            if (cal_oe==F){
+              
+              #if have not generated pop table in the previous step (oe), generate it.
+              #if have already generated, omit.
+              pop <- pop.count.fertM(data_freq[which(eval(parse(text=paste("data_freq$",var,sep="")))==i),], param, nr2, nlb, nhb)
+              write.pop.fertM(pop, param, i.code)
+              
+            }
+            
+            #extract estimated & direct calculated freq rates from estimation result
+            frequency <- est.covar$frequency %>% arrange(age)
+            raw.frequency <- est.covar$raw.frequency %>% arrange(age)
+            #keep freq rates by variable
+            frequency <- frequency[which(eval(parse(text = paste("frequency$",var,sep=""))) == i), -which(names(frequency)==var)] %>% arrange(age)
+            raw.frequency <- raw.frequency[which(eval(parse(text = paste("raw.frequency$",var,sep=""))) == i), -which(names(raw.frequency)==var)] %>% arrange(age)
+            
+            #Calculate estimated total rates and mean age based on estimated freq.
+            frequency$All <- tmp.rowSum.w.na(frequency[2:ncol(frequency)])
+            frequency <- frequency %>% relocate(All, .after = age)
+            
+            #non marital frequency
+            nonmar.freq <- data.frame(age = frequency$age, All = frequency$All)
+            for (i in 1:nr2) {
+              nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(frequency[seq(2+i,4*nr2+2, by=nr2)]))
+              names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+            }
+            
+            #add non marital and total for each marital status
+            frequency <- data.frame(nonmar.freq, frequency[3:ncol(frequency)])
+            frequency$all.nm <- tmp.rowSum.w.na(frequency[(3+nr2):(2+2*nr2)])
+            frequency$all.m <- tmp.rowSum.w.na(frequency[(3+2*nr2):(2+3*nr2)])
+            frequency$all.d <- tmp.rowSum.w.na(frequency[(3+3*nr2):(2+4*nr2)])
+            frequency$all.w <- tmp.rowSum.w.na(frequency[(3+4*nr2):(2+5*nr2)])
+            
+            frequency <- frequency %>% relocate(all.nm, .before = pnm1.freq)
+            frequency <- frequency %>% relocate(all.m, .before = pm1.freq)
+            frequency <- frequency %>% relocate(all.d, .before = pd1.freq)
+            frequency <- frequency %>% relocate(all.w, .before = pw1.freq)
+            
+            freq.total <- data.frame(age = "Total",  total.freq(frequency))
+            frequency <- rbind(frequency, freq.total)
+            rm(freq.total)
+            
+            est.total.rates <- total.freq(nonmar.freq)
+            est.mean.age <- mean.age.cal(nonmar.freq)
+            
+            #Calculate raw total rates and mean age based on raw freq.
+            raw.frequency$All <- tmp.rowSum.w.na(raw.frequency[2:ncol(raw.frequency)])
+            raw.frequency <- raw.frequency %>% relocate(All, .after = age)
+            
+            #non marital frequency
+            nonmar.freq <- data.frame(age = raw.frequency$age, All = raw.frequency$All)
+            for (i in 1:nr2) {
+              nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(raw.frequency[seq(2+i,4*nr2+2, by=nr2)]))
+              names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+            }
+            
+            #add non marital and total for each marital status
+            raw.frequency <- data.frame(nonmar.freq, raw.frequency[3:ncol(raw.frequency)])
+            raw.frequency$all.nm <- tmp.rowSum.w.na(raw.frequency[(3+nr2):(2+2*nr2)])
+            raw.frequency$all.m <- tmp.rowSum.w.na(raw.frequency[(3+2*nr2):(2+3*nr2)])
+            raw.frequency$all.d <- tmp.rowSum.w.na(raw.frequency[(3+3*nr2):(2+4*nr2)])
+            raw.frequency$all.w <- tmp.rowSum.w.na(raw.frequency[(3+4*nr2):(2+5*nr2)])
+            
+            raw.frequency <- raw.frequency %>% relocate(all.nm, .before = pnm1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.m, .before = pm1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.d, .before = pd1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.w, .before = pw1.freq)
+            
+            raw.total.rates <- total.freq(nonmar.freq)
+            raw.mean.age <- mean.age.cal(nonmar.freq)
+            
+            freq.total <- data.frame(age = "Total", total.freq(raw.frequency))
+            raw.frequency <- rbind(raw.frequency, freq.total)
+            rm(freq.total)
+            
+            #combine estimated and raw total rates and frequencies, and calculate difference
+            i.total.rates <- rbind(raw.total.rates, est.total.rates, (est.total.rates-raw.total.rates)/raw.total.rates)
+            i.mean.age <- rbind(raw.mean.age, est.mean.age, (est.mean.age-raw.mean.age)/raw.mean.age)
+            i.total.rates <- do.call(data.frame, lapply(i.total.rates, function(x) replace(x, is.infinite(x), NA)))
+            
+            #adjust format for ease of output
+            i.total.rates <- cbind(i.rowname, rowname, i.total.rates)
+            total.rates <- rbind(total.rates, i.total.rates)
+            i.mean.age <- cbind(i.rowname, rowname, i.mean.age)
+            mean.age <- rbind(mean.age, i.mean.age)
+            
+          }
+          
+          #output rates
+          write.rates.fertM(oe.rates, frequency, param, i.code, "Poisson estimate")
+          write.rates.fertM(raw.oe.rates, raw.frequency, param, i.code, "Direct calculate")
+          
+        }
+        
+        #output total rates
+        write.total.fert.covar(total.rates, mean.age, param, paste0("-by ", var, sep=""), marsuff)
+        
+      }
+      
+    } else if (cohabit ==1){
+      
+      #Case sex.nosex
+      if (byvar=="sex.nosex") {
+        
+        if (cal_oe==T){
+          
+          #generate pop table: # of risk population and # of events
+          pop <- pop.count.fertM(data_oe, param, nr2, nlb, nhb)
+          write.pop.fertM(pop, param, name = combined.name)
+          
+          #extract estimated oe and raw oe
+          oe.rates <- est.covar$oe.rates %>% arrange(age)
+          raw.oe.rates <- est.covar$raw.oe.rates %>% arrange(age)
+          
+        }
+        
+        if (cal_freq==T){
+          
+          #if have not generated pop table in the previous step (oe), generate it.
+          #if have already generated, omit.
+          if(cal_oe==F){
+            pop <- pop.count.fertM(data_freq, param, nr2, nlb, nhb)
+            write.pop.fertM(pop, param, name = combined.name)
+          }
+          
+          #extract estimated freq and raw freq
+          frequency <- est.covar$frequency %>% arrange(age)
+          raw.frequency <- est.covar$raw.frequency %>% arrange(age)
+          
+          #Calculate estimated total rates and mean age based on estimated freq.
+          frequency$All <- tmp.rowSum.w.na(frequency[2:ncol(frequency)])
+          frequency <- frequency %>% relocate(All, .after = age)
+          
+          #non marital frequency
+          nonmar.freq <- data.frame(age = frequency$age, All = frequency$All)
+          for (i in 1:nr2) {
+            nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(frequency[seq(2+i,7*nr2+2, by=nr2)]))
+            names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+          }
+          
+          #add non marital and total for each marital status
+          frequency <- data.frame(nonmar.freq, frequency[3:ncol(frequency)])
+          frequency$all.nmn <- tmp.rowSum.w.na(frequency[(3+nr2):(2+2*nr2)])
+          frequency$all.m <- tmp.rowSum.w.na(frequency[(3+2*nr2):(2+3*nr2)])
+          frequency$all.wnc <- tmp.rowSum.w.na(frequency[(3+3*nr2):(2+4*nr2)])
+          frequency$all.dnc <- tmp.rowSum.w.na(frequency[(3+4*nr2):(2+5*nr2)])
+          frequency$all.nmc <- tmp.rowSum.w.na(frequency[(3+5*nr2):(2+6*nr2)])
+          frequency$all.wc <- tmp.rowSum.w.na(frequency[(3+6*nr2):(2+7*nr2)])
+          frequency$all.dc <- tmp.rowSum.w.na(frequency[(3+7*nr2):(2+8*nr2)])
+          
+          frequency <- frequency %>% relocate(all.nmn, .before = pnmn1.freq)
+          frequency <- frequency %>% relocate(all.m, .before = pm1.freq)
+          frequency <- frequency %>% relocate(all.wnc, .before = pwnc1.freq)
+          frequency <- frequency %>% relocate(all.dnc, .before = pdnc1.freq)
+          frequency <- frequency %>% relocate(all.nmc, .before = pnmc1.freq)
+          frequency <- frequency %>% relocate(all.wc, .before = pwc1.freq)
+          frequency <- frequency %>% relocate(all.dc, .before = pdc1.freq)
+          
+          freq.total <- data.frame(age = "Total",  total.freq(frequency))
+          frequency <- rbind(frequency, freq.total)
+          rm(freq.total)
+          
+          est.total.rates <- total.freq(nonmar.freq)
+          est.mean.age <- mean.age.cal(nonmar.freq)
+          
+          #Calculate raw total rates and mean age based on raw freq.
+          raw.frequency$All <- tmp.rowSum.w.na(raw.frequency[2:ncol(raw.frequency)])
+          raw.frequency <- raw.frequency %>% relocate(All, .after = age)
+          
+          #non marital frequency
+          nonmar.freq <- data.frame(age = raw.frequency$age, All = raw.frequency$All)
+          for (i in 1:nr2) {
+            nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(raw.frequency[seq(2+i,7*nr2+2, by=nr2)]))
+            names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+          }
+          
+          #add non marital and total for each marital status
+          raw.frequency <- data.frame(nonmar.freq, raw.frequency[3:ncol(raw.frequency)])
+          raw.frequency$all.nmn <- tmp.rowSum.w.na(raw.frequency[(3+nr2):(2+2*nr2)])
+          raw.frequency$all.m <- tmp.rowSum.w.na(raw.frequency[(3+2*nr2):(2+3*nr2)])
+          raw.frequency$all.wnc <- tmp.rowSum.w.na(raw.frequency[(3+3*nr2):(2+4*nr2)])
+          raw.frequency$all.dnc <- tmp.rowSum.w.na(raw.frequency[(3+4*nr2):(2+5*nr2)])
+          raw.frequency$all.nmc <- tmp.rowSum.w.na(raw.frequency[(3+5*nr2):(2+6*nr2)])
+          raw.frequency$all.wc <- tmp.rowSum.w.na(raw.frequency[(3+6*nr2):(2+7*nr2)])
+          raw.frequency$all.dc <- tmp.rowSum.w.na(raw.frequency[(3+7*nr2):(2+8*nr2)])
+          
+          raw.frequency <- raw.frequency %>% relocate(all.nmn, .before = pnmn1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.m, .before = pm1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.wnc, .before = pwnc1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.dnc, .before = pdnc1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.nmc, .before = pnmc1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.wc, .before = pwc1.freq)
+          raw.frequency <- raw.frequency %>% relocate(all.dc, .before = pdc1.freq)
+          
+          raw.total.rates <- total.freq(nonmar.freq)
+          raw.mean.age <- mean.age.cal(nonmar.freq)
+          
+          freq.total <- data.frame(age = "Total", total.freq(raw.frequency))
+          raw.frequency <- rbind(raw.frequency, freq.total)
+          rm(freq.total)
+          
+          #combine estimated and raw total rates and frequencies, and calculate difference
+          total.rates <- rbind(raw.total.rates, est.total.rates, (est.total.rates-raw.total.rates)/raw.total.rates)
+          mean.age <- rbind(raw.mean.age, est.mean.age, (est.mean.age-raw.mean.age)/raw.mean.age)
+          total.rates <- do.call(data.frame, lapply(total.rates, function(x) replace(x, is.infinite(x), NA)))
+          
+          write.total.fert.covar(total.rates, mean.age, param, combined.name, marsuff)
+          
+        }
+        
+        #output estimated rates
+        write.rates.fertM(oe.rates, frequency, param, combined.name, "Poisson estimate")
+        #output raw rates
+        write.rates.fertM(raw.oe.rates, raw.frequency, param, combined.name, "Direct calculate")
+        
+      }
+      
+      
+      # if by rural/urban, region, race, edu
+      if (byvar %in% c("ru.nosex", "region.nosex", "race.nosex")){
+        
+        #define code list & varable name
+        if (byvar=="region.nosex"){
+          i.list <- region_list
+          var <- "region"
+        } else if (byvar=="ru.nosex") {
+          i.list <- list(code=c(1,2), name=c("rural", "urban"))
+          var <- "ru"
+        } else if (byvar=="race.nosex"){
+          i.list <- race_list
+          var <- "race"
+        }
+        
+        #run for each list code
+        for(k in 1:length(i.list[[1]])){
+          
+          #code
+          i <- i.list[[1]][k]
+          #name
+          i.name <- i.list[[2]][k]
+          #code for rowname
+          i.rowname <- rep(i.name, 3)
+          #code for output surfix
+          i.code <- paste0(", ", i.name, sep="")
+          
+          if (cal_oe==T){
+            
+            #generate pop table: # of risk population and # of events
+            pop <- pop.count.fertM(data_oe[which(eval(parse(text=paste("data_oe$",var,sep="")))==i),], param, nr2, nlb, nhb)
+            write.pop.fertM(pop, param, i.code)
+            
+            #extract estimated & direct calculated oe rates from estimation result
+            oe.rates <- est.covar$oe.rates
+            raw.oe.rates <- est.covar$raw.oe.rates
+            #keep oe rates by variable
+            oe.rates <- oe.rates[which(eval(parse(text = paste("oe.rates$",var,sep=""))) == i), -which(names(oe.rates)==var)] %>% arrange(age)
+            raw.oe.rates <- raw.oe.rates[which(eval(parse(text = paste("raw.oe.rates$",var,sep=""))) == i), -which(names(raw.oe.rates)==var)] %>% arrange(age)
+            
+          }
+          
+          if (cal_freq==T){
+            
+            if (cal_oe==F){
+              
+              #if have not generated pop table in the previous step (oe), generate it.
+              #if have already generated, omit.
+              pop <- pop.count.fertM(data_freq[which(eval(parse(text=paste("data_freq$",var,sep="")))==i),], param, nr2, nlb, nhb)
+              write.pop.fertM(pop, param, i.code)
+              
+            }
+            
+            #extract estimated & direct calculated freq rates from estimation result
+            frequency <- est.covar$frequency
+            raw.frequency <- est.covar$raw.frequency
+            #keep freq rates by variable
+            frequency <- frequency[which(eval(parse(text = paste("frequency$",var,sep=""))) == i), -which(names(frequency)==var)] %>% arrange(age)
+            raw.frequency <- raw.frequency[which(eval(parse(text = paste("raw.frequency$",var,sep=""))) == i), -which(names(raw.frequency)==var)] %>% arrange(age)
+            
+            #Calculate estimated total rates and mean age based on estimated freq.
+            frequency$All <- tmp.rowSum.w.na(frequency[2:ncol(frequency)])
+            frequency <- frequency %>% relocate(All, .after = age)
+            
+            #non marital frequency
+            nonmar.freq <- data.frame(age = frequency$age, All = frequency$All)
+            for (i in 1:nr2) {
+              nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(frequency[seq(2+i,7*nr2+2, by=nr2)]))
+              names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+            }
+            
+            #add non marital and total for each marital status
+            frequency <- data.frame(nonmar.freq, frequency[3:ncol(frequency)])
+            frequency$all.nmn <- tmp.rowSum.w.na(frequency[(3+nr2):(2+2*nr2)])
+            frequency$all.m <- tmp.rowSum.w.na(frequency[(3+2*nr2):(2+3*nr2)])
+            frequency$all.wnc <- tmp.rowSum.w.na(frequency[(3+3*nr2):(2+4*nr2)])
+            frequency$all.dnc <- tmp.rowSum.w.na(frequency[(3+4*nr2):(2+5*nr2)])
+            frequency$all.nmc <- tmp.rowSum.w.na(frequency[(3+5*nr2):(2+6*nr2)])
+            frequency$all.wc <- tmp.rowSum.w.na(frequency[(3+6*nr2):(2+7*nr2)])
+            frequency$all.dc <- tmp.rowSum.w.na(frequency[(3+7*nr2):(2+8*nr2)])
+            
+            frequency <- frequency %>% relocate(all.nmn, .before = pnmn1.freq)
+            frequency <- frequency %>% relocate(all.m, .before = pm1.freq)
+            frequency <- frequency %>% relocate(all.wnc, .before = pwnc1.freq)
+            frequency <- frequency %>% relocate(all.dnc, .before = pdnc1.freq)
+            frequency <- frequency %>% relocate(all.nmc, .before = pnmc1.freq)
+            frequency <- frequency %>% relocate(all.wc, .before = pwc1.freq)
+            frequency <- frequency %>% relocate(all.dc, .before = pdc1.freq)
+            
+            freq.total <- data.frame(age = "Total",  total.freq(frequency))
+            frequency <- rbind(frequency, freq.total)
+            rm(freq.total)
+            
+            est.total.rates <- total.freq(nonmar.freq)
+            est.mean.age <- mean.age.cal(nonmar.freq)
+            
+            #Calculate raw total rates and mean age based on raw freq.
+            raw.frequency$All <- tmp.rowSum.w.na(raw.frequency[2:ncol(raw.frequency)])
+            raw.frequency <- raw.frequency %>% relocate(All, .after = age)
+            
+            #non marital frequency
+            nonmar.freq <- data.frame(age = raw.frequency$age, All = raw.frequency$All)
+            for (i in 1:nr2) {
+              nonmar.freq <- data.frame(nonmar.freq, tmp.rowSum.w.na(raw.frequency[seq(2+i,7*nr2+2, by=nr2)]))
+              names(nonmar.freq)[i+2] <- paste0("p", i, ".freq")
+            }
+            
+            #add non marital and total for each marital status
+            raw.frequency <- data.frame(nonmar.freq, raw.frequency[3:ncol(raw.frequency)])
+            raw.frequency$all.nmn <- tmp.rowSum.w.na(raw.frequency[(3+nr2):(2+2*nr2)])
+            raw.frequency$all.m <- tmp.rowSum.w.na(raw.frequency[(3+2*nr2):(2+3*nr2)])
+            raw.frequency$all.wnc <- tmp.rowSum.w.na(raw.frequency[(3+3*nr2):(2+4*nr2)])
+            raw.frequency$all.dnc <- tmp.rowSum.w.na(raw.frequency[(3+4*nr2):(2+5*nr2)])
+            raw.frequency$all.nmc <- tmp.rowSum.w.na(raw.frequency[(3+5*nr2):(2+6*nr2)])
+            raw.frequency$all.wc <- tmp.rowSum.w.na(raw.frequency[(3+6*nr2):(2+7*nr2)])
+            raw.frequency$all.dc <- tmp.rowSum.w.na(raw.frequency[(3+7*nr2):(2+8*nr2)])
+            
+            raw.frequency <- raw.frequency %>% relocate(all.nmn, .before = pnmn1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.m, .before = pm1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.wnc, .before = pwnc1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.dnc, .before = pdnc1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.nmc, .before = pnmc1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.wc, .before = pwc1.freq)
+            raw.frequency <- raw.frequency %>% relocate(all.dc, .before = pdc1.freq)
+            
+            raw.total.rates <- total.freq(nonmar.freq)
+            raw.mean.age <- mean.age.cal(nonmar.freq)
+            
+            freq.total <- data.frame(age = "Total", total.freq(raw.frequency))
+            raw.frequency <- rbind(raw.frequency, freq.total)
+            rm(freq.total)
+            
+            i.total.rates <- rbind(raw.total.rates, est.total.rates, (est.total.rates-raw.total.rates)/raw.total.rates)
+            i.mean.age <- rbind(raw.mean.age, est.mean.age, (est.mean.age-raw.mean.age)/raw.mean.age)
+            i.total.rates <- do.call(data.frame, lapply(i.total.rates, function(x) replace(x, is.infinite(x), NA)))
+            
+            #adjust format for ease of output
+            i.total.rates <- cbind(i.rowname, rowname, i.total.rates)
+            total.rates <- rbind(total.rates, i.total.rates)
+            i.mean.age <- cbind(i.rowname, rowname, i.mean.age)
+            mean.age <- rbind(mean.age, i.mean.age)
+            
+          }
+          
+          #output rates
+          write.rates.fertM(oe.rates, frequency, param, i.code, "Poisson estimate")
+          write.rates.fertM(raw.oe.rates, raw.frequency, param, i.code, "Direct calculate")
+          
+        }
+        
+        #output total rates
+        write.total.fert.covar(total.rates, mean.age, param, paste0("-by ", var, sep=""), marsuff)
+        
+      }
+      
     }
     
   }
@@ -1216,8 +1838,6 @@ compute.fertM <- function(data_oe, data_freq, param, plot, plot.name, method, mf
     
   } else if (cohabit==1) {
     
-    #### 7 marital status: NOT been tested #### 
-    
     #general setting: marital status and plot column index
     config <- rbind(c(1, "never married and not cohabiting", 1, "pnmnc"),
                     c(2, "married", 8, "pm"),
@@ -1347,7 +1967,7 @@ compute.fertM <- function(data_oe, data_freq, param, plot, plot.name, method, mf
         
         
         #direct calculate
-        p.freqs <- foreach (i=1:nr2,.combine='list',.export="freqM.raw",,.packages=c("dplyr","mfp"),.multicombine=TRUE) %dopar% {
+        p.freqs <- foreach (i=1:nr2,.combine='list',.export="freqM.raw",.packages=c("dplyr","mfp"),.multicombine=TRUE) %dopar% {
           female_ <- female_freq[which(female_freq$age >= nlb + i -1),]
           p.freq <- merge(agelist, freqM.raw(female_, nlb, nhb, mar.bf_, i, nWeight), all.x=TRUE)
         }
@@ -1362,6 +1982,7 @@ compute.fertM <- function(data_oe, data_freq, param, plot, plot.name, method, mf
               p.freq.est <- merge(agelist, freqM.poi(female_, nlb, nhb, mar.bf_, i, nWeight, mfp), all.x=TRUE)
             }
           }
+          
           
           ###### Bayesian to be added ######
           
@@ -1592,6 +2213,661 @@ compute.fertM <- function(data_oe, data_freq, param, plot, plot.name, method, mf
               raw.oe.rates = raw.oe.rates, raw.frequency = raw.frequency,
               total.rates = total.rates, mean.age = mean.age))
 }
+
+## Newly Added Covar function ##
+compute.fert.covar <- function(data_oe, data_freq, param, code, plot, plot.name, byvar, mfp){
+  
+  #parameters
+  nlb <- as.numeric(param$nlb)
+  nhb <- as.numeric(param$nhb)
+  nr2 <- as.numeric(param$nr2)
+  title <- as.character(param$title)
+  t1Month <- as.numeric(param$t1Month)
+  t2Month <- as.numeric(param$t2Month)
+  nWeight <- as.numeric(param$nWeight)
+  nrate <- as.numeric(param$nRate)
+  nRegion <- as.numeric(param$nRegion)
+  nRace <- as.numeric(param$nRace)
+  
+  period <- paste0((t1Month-1)%/%12+1900, " - ",(t2Month-1)%/%12+1900, sep="")
+  
+
+  #options indicating whether calculate oe or freq
+  cal_oe <- (nrate==1 | nrate==2)
+  cal_freq <- (nrate==1 | nrate==3)
+  
+  #region list
+  if (nRegion>1){
+    region_tmp<- code %>% select(`Region Code`, `Region Name`)
+    names(region_tmp) <- c("code", "name")
+    region_tmp <- region_tmp %>% filter(!is.na(name))
+    region_list <- as.list(region_tmp)
+  }
+  
+  #race list
+  if (nRace>1){
+    race_tmp<- code %>% select(`Race Code`, `Race Name`)
+    names(race_tmp) <- c("code", "name")
+    race_tmp <- race_tmp %>% filter(!is.na(name))
+    race_list <- as.list(race_tmp)
+  }
+  
+  
+  #set rates as NA first, change later if cal_oe/cal_freq is TRUE.
+  oe.rates <- raw.oe.rates <- frequency <- raw.frequency <- NA
+  
+  if(cal_oe == TRUE){
+    
+    #keep only female sample
+    female_oe <- subset(data_oe, sex == 2)
+    
+    agelist <- null.rates(female_oe, nlb, nhb, byvar)
+    
+    #estimate rates for each parity
+    for (i in 1:nr2){
+      
+      #the lowest fertility rates increase 1 year per parity
+      female_ <- female_oe[which(female_oe$age >= nlb + i -1),]
+      p.oe <- merge(agelist, oe.est.byvar(female_, nlb, nhb, i-1, i, byvar, nWeight,mfp), all.x=TRUE)
+      assign(paste0("p", i, ".oe", sep=""), p.oe)
+    }
+    
+  }
+  
+  if(cal_freq == TRUE){
+    
+    #keep only female sample
+    female_freq <- subset(data_freq, sex == 2)
+    
+    agelist <- null.rates(female_freq, nlb, nhb, byvar)
+    
+    for (i in 1:nr2){
+      
+      #the lowest fertility rates increase 1 year per parity
+      female_ <- female_freq[which(female_freq$age >= nlb + i -1),]
+      p.freq <- merge(agelist, freq.est.byvar(female_, nlb, nhb, i, byvar, nWeight, mfp), all.x=TRUE)
+      assign(paste0("p", i, ".freq", sep=""), p.freq)
+    }
+    
+  }
+  
+  
+  if (plot==TRUE) {
+    
+    wb <- createWorkbook()
+    # define worksheet number
+    k<-1
+    
+    if(cal_oe == TRUE){
+      # oe
+      addWorksheet(wb, "oe")
+      
+      writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+      writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+      k<-k+1    #if cal_freq==T, store in sheet k=2.
+      
+      row.index <- 3
+      
+      for (i in 1:nr2){
+        
+        ## oe does not consider nr2+, due to risk population
+        
+        p <- rates.plot(eval(parse(text=paste0("p", i, ".oe", sep=""))), nlb, nhb, "o/e rate", paste0("Figure 4.",i," Age specific fertility o/e rates, parity ",i, plot.name, sep=""))
+        print(p)
+        insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+        row.index <- row.index + 22
+        
+      }
+      
+    }
+    
+    
+    if(cal_freq == TRUE){
+      # fre
+      addWorksheet(wb, "freq")
+      
+      writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+      writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+      
+      row.index <- 3
+      
+      for (i in 1:nr2){
+        
+        ##only frequency consider nr2+
+        
+        if (i<nr2){
+          p <- rates.plot(eval(parse(text=paste0("p", i, ".freq", sep=""))), nlb, nhb, "frequency", paste0("Figure 5.",i," Age specific fertility frequencies, parity ",i, plot.name, sep=""))
+          print(p)
+          insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+          row.index <- row.index + 22
+        } else {
+          
+          #if last event: name as nr2+
+          p <- rates.plot(eval(parse(text=paste0("p", i, ".freq", sep=""))), nlb, nhb, "frequency", paste0("Figure 5.",i," Age specific fertility frequencies, parity ",i, "+", plot.name, sep=""))
+          print(p)
+          insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=1, width=12.55, height=10.4, units="cm")
+        }
+        
+      }
+      
+    }
+    
+    
+    output.dir <- getwd()
+    plot.name <- gsub(", ", "-", plot.name)
+    saveWorkbook(wb, paste0(output.dir, "/", title, " non-mar Fertility plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+    
+  }
+  
+  
+  if(cal_oe == TRUE){
+    
+    agelist <- arrange.covar(agelist, byvar) %>% distinct()
+    oe.rates <- raw.oe.rates <- agelist
+    
+    #estimated rates
+    for (i in 1:nr2){
+      poi.oe_ <- eval(parse(text=paste0("p", i, ".oe")))$est.rates
+      poi.oe_[poi.oe_ >= 2] <- NA
+      oe.rates <- data.frame(oe.rates, poi.oe_)
+      names(oe.rates)[i+ncol(agelist)] <- paste0("p", i, ".oe")
+    }
+    
+    #direct calculated rates
+    for (i in 1:nr2){
+      raw.oe_ <- eval(parse(text=paste0("p", i, ".oe")))$raw.rates
+      raw.oe_ [raw.oe_ >= 2] <- NA
+      raw.oe.rates <- data.frame(raw.oe.rates, raw.oe_)
+      names(raw.oe.rates)[i+ncol(agelist)] <- paste0("p", i, ".oe")
+    }
+    
+  }
+  
+  
+  if(cal_freq == TRUE){
+    
+    agelist <- arrange.covar(agelist, byvar) %>% distinct()
+    frequency <- raw.frequency <- agelist
+    
+    #estimated rates
+    for (i in 1:nr2){
+      frequency <- data.frame(frequency, eval(parse(text=paste0("p", i, ".freq")))$est.rates)
+      names(frequency)[i+ncol(agelist)] <- paste0("p", i, ".freq")
+    }
+    
+    #direct calculated rates
+    for (i in 1:nr2){
+      raw.frequency <- data.frame(raw.frequency, eval(parse(text=paste0("p", i, ".freq")))$raw.rates)
+      names(raw.frequency)[i+ncol(agelist)] <- paste0("p", i, ".freq")
+    }
+    
+  }
+  
+  
+  return(list(oe.rates=oe.rates, frequency=frequency,
+              raw.oe.rates = raw.oe.rates, raw.frequency = raw.frequency))
+}
+
+compute.fertM.covar <- function(data_oe, data_freq, param, code, plot, plot.name, byvar, mfp){
+  
+  #parameters
+  nlb <- as.numeric(param$nlb)
+  nhb <- as.numeric(param$nhb)
+  nr2 <- as.numeric(param$nr2)
+  cohabit <- as.numeric(param$cohabit)
+  title <- as.character(param$title)
+  t1Month <- as.numeric(param$t1Month)
+  t2Month <- as.numeric(param$t2Month)
+  nWeight <- as.numeric(param$nWeight)
+  nrate <- as.numeric(param$nRate)
+  nRegion <- as.numeric(param$nRegion)
+  nRace <- as.numeric(param$nRace)
+  
+  period <- paste0((t1Month-1)%/%12+1900, " - ",(t2Month-1)%/%12+1900, sep="")
+  
+  #options indicating whether calculate oe or freq
+  cal_oe <- (nrate==1 | nrate==2)
+  cal_freq <- (nrate==1 | nrate==3)
+  
+  
+  #region list
+  if (nRegion>1){
+    region_tmp<- code %>% select(`Region Code`, `Region Name`)
+    names(region_tmp) <- c("code", "name")
+    region_tmp <- region_tmp %>% filter(!is.na(name))
+    region_list <- as.list(region_tmp)
+  }
+  
+  #race list
+  if (nRace>1){
+    race_tmp<- code %>% select(`Race Code`, `Race Name`)
+    names(race_tmp) <- c("code", "name")
+    race_tmp <- race_tmp %>% filter(!is.na(name))
+    race_list <- as.list(race_tmp)
+  }
+  
+  #set rates as NA first, change later if cal_oe/cal_freq is TRUE.
+  oe.rates <- raw.oe.rates <- frequency <- raw.frequency <- NA
+  
+  if (cohabit==0){
+    
+    ## 4 marital status
+    
+    #general setting: marital status and plot column index
+    config <- rbind(c(1, "never married", 1, "pnm"),
+                    c(2, "married", 7, "pm"),
+                    c(4, "divorced", 13, "pd"),
+                    c(3, "widowed", 19, "pw"))
+    
+    #if output graph, create workbook
+    if (plot==T){
+      wb <- createWorkbook()
+      # define worksheet number
+      k<-1
+    }
+    
+    if(cal_oe == TRUE){
+      
+      #keep only female sample
+      female_oe <- subset(data_oe, sex == 2)
+      
+      agelist <- null.rates(female_oe, nlb, nhb, byvar)
+      
+      #if output graph, set worksheet 1
+      if (plot==T){
+        addWorksheet(wb, "oe")
+        
+        writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+        writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+        k<-k+1    #if cal_freq==T, store in sheet k=2.
+      }
+      
+
+      #for each marital status, estimate oe
+      p.oes <- list()
+      for (row in 1:nrow(config)) {
+        mar.bf_ <- as.numeric(config[row, 1])
+        type_ <- config[row, 2]
+        col_ <- as.numeric(config[row, 3])
+        title_ <- config[row, 4]
+        
+        cl<- makeCluster(max(1, min(nr2, detectCores())))
+        registerDoParallel(cl)
+        
+        ### foreach function is orginally edited by Mo Yan.
+        ### oe.est.byvar is changed (by Siyao) due to prediction.data function cannot be found when using oe.est.byvar function.
+        for (i in 1:nr2){
+          female_ <- female_oe[which(female_oe$age >= nlb + i -1),]
+          p.oe <- merge(agelist, oe.est.byvar(subset(female_, mar.bf==mar.bf_), nlb, nhb, i-1, i, byvar, nWeight, mfp), all.x=TRUE)
+          p.oes[[i]] <- p.oe
+        }
+        
+        # p.oes <- foreach (i=1:nr2,.combine='list',.export="oe.est.byvar",.packages=c("dplyr","mfp"),.multicombine=TRUE) %dopar% {
+        #   female_ <- female_oe[which(female_oe$age >= nlb + i -1),]
+        #   p.oe <- merge(agelist, oe.est.byvar(subset(female_, mar.bf==mar.bf_), nlb, nhb, i-1, i, byvar, nWeight, mfp), all.x=TRUE)
+        # }
+        
+        for (i in 1:nr2){
+          p.oe <- data.frame(p.oes[i])
+          assign(paste0("p", i, ".oe", sep=""), p.oe)  ## to draw the graphs
+          assign(paste0(title_, i, ".oe", sep=""), p.oe)
+        }
+        
+        
+        #if output graph, insert plots (in different rows) for each marital status (in different columns)
+        if (plot==T){
+          
+          row.index <- 3
+          
+          for (i in 1:nr2){
+            p <- rates.plot(eval(parse(text=paste0("p", i, ".oe", sep=""))), nlb, nhb, "o/e rate", paste0("Figure 4.",i," Age specific fertility o/e rates for ", type_, " women, parity ",i, plot.name, sep=""))
+            print(p)
+            insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=col_, width=12.55, height=10.4, units="cm")
+            row.index <- row.index + 22
+          }
+          
+        }
+        
+      }
+      
+    }
+    
+    if(cal_freq == TRUE){
+      
+      #keep only female sample
+      female_freq <- subset(data_freq, sex == 2)
+      
+      agelist <- null.rates(female_freq, nlb, nhb, byvar)
+      
+      #if output graph, set worksheet 2
+      if (plot==T){
+        addWorksheet(wb, "freq")
+        
+        writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+        writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+      }
+      
+      
+      #for each marital status, estimate freq
+      p.freqs <- list()
+      for (row in 1:nrow(config)) {
+        mar.bf_ <- as.numeric(config[row, 1])
+        type_ <- config[row, 2]
+        col_ <- as.numeric(config[row, 3])
+        title_ <- config[row, 4]
+        
+        cl<- makeCluster(max(1, min(nr2, detectCores())))
+        registerDoParallel(cl)
+        
+        
+        ### foreach function is orginally edited by Mo Yan.
+        ### freqM.est.byvar is changed (by Siyao) due to null.rates function cannot be found when using freqM.est.byvar function.
+        for (i in 1:nr2) {
+          female_ <- female_freq[which(female_freq$age >= nlb + i -1),]
+          p.freq <- merge(agelist, freqM.est.byvar(female_, nlb, nhb, mar.bf_, i, byvar, nWeight, mfp), all.x=TRUE)
+          p.freqs[[i]] <- p.freq
+        }
+        
+        # p.freqs <- foreach (i=1:nr2,.combine='list',.export="freqM.est.byvar",.packages=c("dplyr","mfp"),.multicombine=TRUE) %dopar% {
+        #   female_ <- female_freq[which(female_freq$age >= nlb + i -1),]
+        #   p.freq <- merge(agelist, freqM.est.byvar(female_, nlb, nhb, mar.bf_, i, byvar, nWeight, mfp), all.x=TRUE)
+        # }
+        
+        for (i in 1:nr2){
+          p.freq <- data.frame(p.freqs[i])
+          assign(paste0("p", i, ".freq", sep=""), p.freq)   ## to draw the graph
+          assign(paste0(title_, i, ".freq", sep=""), p.freq)
+        }
+        
+        
+        #if output graph, insert plots (in different rows) for each marital status (in different columns)
+        if (plot==T){
+          
+          row.index <- 3
+          
+          for (i in 1:nr2){
+            
+            if (i<nr2){
+              p <- rates.plot(eval(parse(text=paste0("p", i, ".freq", sep=""))), nlb, nhb, "frequency", paste0("Figure 5.",i," Age specific fertility frequencies for ", type_, " women, parity ",i, plot.name, sep=""))
+              print(p)
+              insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=col_, width=12.55, height=10.4, units="cm")
+              row.index <- row.index + 22
+            } else {
+              
+              #if last event: name as nr2+
+              p <- rates.plot(eval(parse(text=paste0("p", i, ".freq", sep=""))), nlb, nhb, "frequency", paste0("Figure 5.",i," Age specific fertility frequencies for ", type_, " women, parity ",i, "+", plot.name, sep=""))
+              print(p)
+              insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=col_, width=12.55, height=10.4, units="cm")
+            }
+            
+          }
+          
+        }
+        
+      }
+      
+    }
+    
+    #if output graph, write excel file
+    if (plot==T){
+      output.dir <- getwd()
+      plot.name <- gsub(", ", "-", plot.name)
+      saveWorkbook(wb, paste0(output.dir, "/", title, " 4 marital Fertility plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+    }
+    
+    
+    #### the following part is to summarize all results into oe.rates or frequency dataframe
+    
+    config <- rbind("pnm", "pm", "pd", "pw")
+    
+    if(cal_oe == TRUE){
+      
+      agelist <- arrange.covar(agelist, byvar) %>% distinct()
+      oe.rates <- raw.oe.rates <- agelist
+      
+      for (row in 1:nrow(config)) {
+        title_ <- config[row]
+        
+        for (i in 1:nr2){
+
+          oe.rates_ <- eval(parse(text=paste0(title_, i, ".oe")))$est.rates
+          oe.rates_[oe.rates_ >= 2] <- NA
+          oe.rates <- data.frame(oe.rates, oe.rates_)
+          names(oe.rates)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".oe")
+          
+          raw.oe_ <- eval(parse(text=paste0(title_, i, ".oe")))$raw.rates
+          raw.oe_ [raw.oe_ >= 2] <- NA
+          raw.oe.rates <- data.frame(raw.oe.rates, raw.oe_)
+          names(raw.oe.rates)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".oe")
+          
+        }
+      }
+      
+      
+    }
+    
+    if(cal_freq == TRUE){
+      
+      agelist <- arrange.covar(agelist, byvar) %>% distinct()
+      frequency <- raw.frequency <- agelist
+      
+      for (row in 1:nrow(config)) {
+        title_ <- config[row]
+        
+        for (i in 1:nr2){
+          
+          frequency <- data.frame(frequency, eval(parse(text=paste0(title_, i, ".freq")))$est.rates)
+          names(frequency)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".freq")
+          
+          raw.frequency <- data.frame(raw.frequency, eval(parse(text=paste0(title_, i, ".freq")))$raw.rates)
+          names(raw.frequency)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".freq")
+          
+        }
+      }
+
+    }
+    
+    
+  } else if (cohabit==1) {
+    
+    #general setting: marital status and plot column index
+    config <- rbind(c(1, "never married and not cohabiting", 1, "pnmnc"),
+                    c(2, "married", 8, "pm"),
+                    c(3, "widowed and not cohabiting", 15, "pwnc"),
+                    c(4, "divorced and not cohabiting", 22, "pdnc"),
+                    c(5, "never married and cohabiting", 29, "pnmc"),
+                    c(7, "widowed and cohabiting", 36, "pwc"),
+                    c(8, "divorced and cohabiting", 43, "pdc"))
+    
+    #if output graph, create workbook
+    if (plot==T){
+      wb <- createWorkbook()
+      # define worksheet number
+      k<-1
+    }
+    
+    if(cal_oe == TRUE){
+      
+      #if output graph, set worksheet 1
+      if (plot==T){
+        addWorksheet(wb, "oe")
+        
+        writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+        writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+        k<-k+1    #if cal_freq==T, store in sheet k=2.
+      }
+      
+      #separate by gender
+      female_oe <- subset(data_oe, sex == 2)
+      
+      #for each marital status, estimate oe
+      for (row in 1:nrow(config)) {
+        mar.bf_ <- as.numeric(config[row, 1])
+        type_ <- config[row, 2]
+        col_ <- as.numeric(config[row, 3])
+        title_ <- config[row, 4]
+        
+        cl<- makeCluster(max(1, min(nr2, detectCores())))
+        registerDoParallel(cl)
+        
+        p.oes <- foreach (i=1:nr2,.combine='list',.export="oe.est.byvar",.packages=c("dplyr","mfp"),.multicombine=TRUE) %dopar% {
+          female_ <- female_oe[which(female_oe$age >= nlb + i -1),]
+          p.oe <- merge(agelist, oe.est.byvar(subset(female_, mar.bf==mar.bf_), nlb, nhb, i-1, i, byvar, nWeight, mfp), all.x=TRUE)
+        }
+        
+        for (i in 1:nr2){
+          p.oe <- data.frame(p.oes[i])
+          assign(paste0("p", i, ".oe", sep=""), p.oe)
+          assign(paste0(title_, i, ".oe", sep=""), p.oe)
+        }
+        
+
+        #if output graph, insert plots (in different rows) for each marital status (in different columns)
+        if (plot==T){
+          
+          row.index <- 3
+          
+          for (i in 1:nr2){
+            p <- rates.plot(eval(parse(text=paste0("p", i, ".oe", sep=""))), nlb, nhb, "o/e rate", paste0("Figure 4.",i," Age specific fertility o/e rates for ", type_, " women, parity ",i, plot.name, sep=""))
+            print(p)
+            insertPlot(wb, "oe", fileType = "png", startRow=row.index, startCol=col_, width=12.55, height=10.4, units="cm")
+            row.index <- row.index + 22
+          }
+          
+        }
+        
+      }
+      
+    }
+    
+    if(cal_freq == TRUE){
+      
+      #if output graph, set worksheet 2
+      if (plot==T){
+        addWorksheet(wb, "freq")
+        
+        writeData(wb, sheet=k, paste0("Data Source: ", title, sep=""), startRow=1, startCol=1)
+        writeData(wb, sheet=k, paste0("Period: ", period, sep=""), startRow=2, startCol=1)
+      }
+      
+      #separate by gender
+      female_freq <- subset(data_freq, sex == 2)
+      
+      #for each marital status, estimate freq
+      for (row in 1:nrow(config)) {
+        mar.bf_ <- as.numeric(config[row, 1])
+        type_ <- config[row, 2]
+        col_ <- as.numeric(config[row, 3])
+        title_ <- config[row, 4]
+        
+        cl<- makeCluster(max(1, min(nr2, detectCores())))
+        registerDoParallel(cl)
+        
+        
+        p.freqs <- foreach (i=1:nr2,.combine='list',.export="freqM.est.byvar",.packages=c("dplyr","mfp"),.multicombine=TRUE) %dopar% {
+          female_ <- female_freq[which(female_freq$age >= nlb + i -1),]
+          p.freq <- merge(agelist, freqM.est.byvar(female_, nlb, nhb, mar.bf_, i, byvar, nWeight, mfp), all.x=TRUE)
+        }
+        
+        for (i in 1:nr2){
+          p.freq <- data.frame(p.freqs[i])
+          assign(paste0("p", i, ".freq", sep=""), p.freq)
+          assign(paste0(title_, i, ".freq", sep=""), p.freq)
+        }
+        
+
+        #if output graph, insert plots (in different rows) for each marital status (in different columns)
+        if (plot==T){
+          
+          row.index <- 3
+          
+          for (i in 1:nr2){
+            
+            if (i<nr2){
+              p <- rates.plot(eval(parse(text=paste0("p", i, ".freq", sep=""))), nlb, nhb, "frequency", paste0("Figure 5.",i," Age specific fertility frequencies for ", type_, " women, parity ",i, plot.name, sep=""))
+              print(p)
+              insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=col_, width=12.55, height=10.4, units="cm")
+              row.index <- row.index + 22
+            } else {
+              
+              #if last event: name as nr2+
+              p <- rates.plot(eval(parse(text=paste0("p", i, ".freq", sep=""))), nlb, nhb, "frequency", paste0("Figure 5.",i," Age specific fertility frequencies for ", type_, " women, parity ",i, "+", plot.name, sep=""))
+              print(p)
+              insertPlot(wb, "freq", fileType = "png", startRow=row.index, startCol=col_, width=12.55, height=10.4, units="cm")
+            }
+            
+          }
+          
+        }
+        
+      }
+      
+    }
+    
+    #if output graph, write excel file
+    if (plot==T){
+      output.dir <- getwd()
+      plot.name <- gsub(", ", "-", plot.name)
+      saveWorkbook(wb, paste0(output.dir, "/", title, " 7 marital Fertility plot", plot.name, ".xlsx", sep=""), overwrite=TRUE)
+    }
+    
+    
+    #### the following part is to summarize all results into oe.rates or frequency dataframe
+    
+    config <- rbind("pnmnc", "pm", "pwnc", "pdnc", "pnmc", "pwc", "pdc")
+    
+    if(cal_oe == TRUE){
+      
+      agelist <- arrange.covar(agelist, byvar) %>% distinct()
+      oe.rates <- raw.oe.rates <- agelist
+      
+      for (row in 1:nrow(config)) {
+        title_ <- config[row]
+        
+        for (i in 1:nr2){
+          
+          oe.rates_ <- eval(parse(text=paste0(title_, i, ".oe")))$est.rates
+          oe.rates_[oe.rates_ >= 2] <- NA
+          oe.rates <- data.frame(oe.rates, oe.rates_)
+          names(oe.rates)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".oe")
+          
+          raw.oe_ <- eval(parse(text=paste0(title_, i, ".oe")))$raw.rates
+          raw.oe_ [raw.oe_ >= 2] <- NA
+          raw.oe.rates <- data.frame(raw.oe.rates, raw.oe_)
+          names(raw.oe.rates)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".oe")
+          
+        }
+      }
+      
+    }
+    
+    if(cal_freq == TRUE){
+      
+      agelist <- arrange.covar(agelist, byvar) %>% distinct()
+      frequency <- raw.frequency <- agelist
+      
+      for (row in 1:nrow(config)) {
+        title_ <- config[row]
+        
+        for (i in 1:nr2){
+          
+          frequency <- data.frame(frequency, eval(parse(text=paste0(title_, i, ".freq")))$est.rates)
+          names(frequency)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".freq")
+          
+          raw.frequency <- data.frame(raw.frequency, eval(parse(text=paste0(title_, i, ".freq")))$raw.rates)
+          names(raw.frequency)[i+ncol(agelist)+(row-1)*nr2] <- paste0(title_, i, ".freq")
+          
+        }
+      }
+      
+    }
+    
+  }
+  
+  return(list(oe.rates=oe.rates, frequency=frequency,
+              raw.oe.rates = raw.oe.rates, raw.frequency = raw.frequency))
+}
+
 
 ##------Prepare Data-------
 data.prepare.birth <- function(data, marital, nr2, t1Month, t2Month, nlb, nhb){
@@ -1853,43 +3129,61 @@ mar.bf7.t2 <- function(data, t2Month) {
 
 pop.count.fert <- function(data, nr2, nlb, nhb){
   age <- data.frame(age=seq(nlb, nhb, 1))
-  d.001 <- subset(data, select=c(age, sex, post, event))
+  d.001 <- subset(data, sex == 2, select=c(age, post, event, py))
   
   #status
-  temp <- aggregate(cbind(d.001[0], count=1),
-                    list(age=d.001$age, sex=d.001$sex, status=d.001$post), sum)
+  if(nrow(d.001)==0){
+    temp <- data.frame(age=NA,status=NA, count=NA)[F,]
+  } else {
+    temp <- aggregate(cbind(d.001[0], count=d.001$py),
+                      list(age=d.001$age, status=d.001$post), sum)
+  }
   
-  female <- as.data.frame(merge(age, subset(temp, sex == 2 & status == 0, select=c(age, count)), all.x=TRUE))
+  female <- as.data.frame(merge(age, subset(temp, status == 0, select=c(age, count)), all.x=TRUE))
   for (i in 1:(nr2-1)) {
-    female_add <- as.data.frame(merge(age, subset(temp, sex == 2 & status == i, select=c(age, count)), all.x=TRUE))
+    female_add <- as.data.frame(merge(age, subset(temp, status == i, select=c(age, count)), all.x=TRUE))
     female <- cbind(female, female_add[,2])
   }
   names(female) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
   
-  all <- aggregate(temp[,4], list(age=temp$age, sex=temp$sex), sum)
-  all.female <- merge(age, subset(all, sex == 2, select=c(age, x)), all.x=TRUE)
+  if(nrow(d.001)==0){
+    all.female <- data.frame(age=NA,x=NA)[F,]
+  } else {
+    all.female <- aggregate(cbind(d.001[0], count=d.001$py),
+                     list(age=d.001$age), sum)
+  }
+  all.female <- merge(age, all.female, all.x = T)
   names(all.female) <- c("age", "count")
   
-  status <- data.frame(age=age$age, all=all.female$count/12, female[,2:(nr2+1)]/12)
+  status <- data.frame(age=age$age, all=all.female$count, female[,2:(nr2+1)])
   status[, 2:ncol(status)] <- round(status[, 2:ncol(status)], 1)
   risk.total <- data.frame(age = "Total", t(colSums(status[2:ncol(status)], na.rm = T)))
   status <- rbind(status, risk.total)
   rm(risk.total)
   
   # event
-  temp <- aggregate(cbind(d.001[0], count=1),
-                    list(age=d.001$age, sex=d.001$sex, event=d.001$event), sum)
+  if(nrow(d.001)==0){
+    temp <- data.frame(age=NA,event=NA, count=NA)[F,]
+  } else {
+    temp <- aggregate(cbind(d.001[0], count=1),
+                      list(age=d.001$age, event=d.001$event), sum)
+  }
   
-  female.par <- as.data.frame(merge(age, subset(temp, sex == 2 & event == 1, select=c(age, count)), all.x=TRUE))
+
+  female.par <- as.data.frame(merge(age, subset(temp, event == 1, select=c(age, count)), all.x=TRUE))
   for (i in 2:nr2) {
-    par_add <- as.data.frame(merge(age, subset(temp, sex == 2 & event == i, select=c(age, count)), all.x=TRUE))
+    par_add <- as.data.frame(merge(age, subset(temp, event == i, select=c(age, count)), all.x=TRUE))
     female.par <- cbind(female.par, par_add[,2])
   }
   names(female.par) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
   
   t <- temp[-which(temp$event == 0),]
-  all <- aggregate(t[,4], list(age=t$age, sex=t$sex), sum)
-  all.female <-  merge(age, subset(all, sex == 2, select=c(age, x)), all.x=TRUE)
+  if(nrow(t)==0){
+    all.female <- data.frame(age=NA,x=NA)[F,]
+  } else {
+    all.female <- aggregate(t[,3], list(age=t$age), sum)
+  }
+  all.female <- merge(age, all.female, all.x = T)
   names(all.female) <- c("age", "count")
   
   event <- data.frame(age=age$age, all=all.female$count, female.par[, 2:(nr2+1)])
@@ -1977,84 +3271,235 @@ write.rates.fert <- function(oe.rates, frequency, param, name, method){
 }
 
 #### marital fertility ####
-pop.count.fertM <- function(data, nr2, nlb, nhb){
+pop.count.fertM <- function(data, param, nr2, nlb, nhb){
+  
+  cohabit <- as.numeric(param$cohabit)
+  
   age <- data.frame(age=seq(nlb, nhb, 1))
-  d.001 <- subset(data, select=c(age, sex, post, event, mar.bf))
+  d.001 <- subset(data, sex==2, select=c(age, post, event, mar.bf, py))
   
-  #status
-  temp <- aggregate(cbind(d.001[0], count=1),
-                    list(age=d.001$age, sex=d.001$sex, status=d.001$post, mar=d.001$mar.bf), sum)
-  
-  female.nm <- as.data.frame(merge(age, subset(temp, sex == 2 & status == 0 & mar == 1, select=c(age, count)), all.x=TRUE))
-  for (i in 1:(nr2-1)) {
-    female_add <- as.data.frame(merge(age, subset(temp, sex == 2 & mar == 1 & status == i, select=c(age, count)), all.x=TRUE))
-    female.nm <- cbind(female.nm, female_add[,2])
+  if (cohabit==0){
+    
+    #status
+    if(nrow(d.001)==0){
+      temp <- data.frame(age=NA,status=NA,mar=NA,count=NA)[F,]
+    } else {
+      temp <- aggregate(cbind(d.001[0], count=d.001$py),
+                        list(age=d.001$age, status=d.001$post, mar=d.001$mar.bf), sum)
+    }
+    
+    female.nm <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 1, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 1 & status == i, select=c(age, count)), all.x=TRUE))
+      female.nm <- cbind(female.nm, female_add[,2])
+    }
+    names(female.nm) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female.m <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 2, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 2 & status == i, select=c(age, count)), all.x=TRUE))
+      female.m <- cbind(female.m, female_add[,2])
+    }
+    names(female.m) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female.d <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 4, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 4 & status == i, select=c(age, count)), all.x=TRUE))
+      female.d <- cbind(female.d, female_add[,2])
+    }
+    names(female.d) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female.w <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 3, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 3 & status == i, select=c(age, count)), all.x=TRUE))
+      female.w <- cbind(female.w, female_add[,2])
+    }
+    names(female.w) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female <- cbind(female.nm, female.m[,2:(1+nr2)], female.d[,2:(1+nr2)], female.w[,2:(1+nr2)])
+    
+    if(nrow(d.001)==0){
+      all.female <- data.frame(age=NA,x=NA)[F,]
+      all.female <- merge(age, all.female, all.x = T)
+    } else {
+      all <- aggregate(temp[,4], list(age=temp$age), sum)
+      all.female <- merge(age, subset(all, select=c(age, x)), all.x=TRUE)
+    }
+    names(all.female) <- c("age", "count")
+    
+    status <- data.frame(age=age$age, all=all.female$count, female[,2:ncol(female)])
+    status[, 2:ncol(status)] <- round(status[, 2:ncol(status)], 1)
+    risk.total <- data.frame(age = "Total", t(colSums(status[2:ncol(status)], na.rm = T)))
+    status <- rbind(status, risk.total)
+    rm(risk.total)
+    
+    # event
+    if(nrow(d.001)==0){
+      temp <- data.frame(age=NA,event=NA,mar=NA,count=NA)[F,]
+    } else {
+      temp <- aggregate(cbind(d.001[0], count=1),
+                        list(age=d.001$age, event=d.001$event, mar=d.001$mar.bf), sum)
+    }
+    
+    female.par.nm <- as.data.frame(merge(age, subset(temp, event == 1 & mar==1, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==1, select=c(age, count)), all.x=TRUE))
+      female.par.nm <- cbind(female.par.nm, par_add[,2])
+    }
+    names(female.par.nm) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    female.par.m <- as.data.frame(merge(age, subset(temp, event == 1 & mar==2, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==2, select=c(age, count)), all.x=TRUE))
+      female.par.m <- cbind(female.par.m, par_add[,2])
+    }
+    names(female.par.m) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    female.par.d <- as.data.frame(merge(age, subset(temp, event == 1 & mar==4, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==4, select=c(age, count)), all.x=TRUE))
+      female.par.d <- cbind(female.par.d, par_add[,2])
+    }
+    names(female.par.d) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    female.par.w <- as.data.frame(merge(age, subset(temp, event == 1 & mar==3, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==3, select=c(age, count)), all.x=TRUE))
+      female.par.w <- cbind(female.par.w, par_add[,2])
+    }
+    names(female.par.w) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    
+    female.par <- cbind(female.par.nm, female.par.m[,2:(1+nr2)], female.par.d[,2:(1+nr2)], female.par.w[,2:(1+nr2)])
+    t <- temp[-which(temp$event == 0),]
+    
+    if(nrow(t)==0){
+      all.female <- data.frame(age=NA,x=NA)[F,]
+      all.female <- merge(age, all.female, all.x = T)
+    } else {
+      all.female <- aggregate(t[,4], list(age=t$age), sum)
+      all.female <-  merge(age, subset(all, select=c(age, x)), all.x=TRUE)
+    }
+    names(all.female) <- c("age", "count")
+    
+  } else if (cohabit==1){
+    
+    #status
+    if(nrow(d.001)==0){
+      temp <- data.frame(age=NA,status=NA,mar=NA,count=NA)[F,]
+    } else {
+      temp <- aggregate(cbind(d.001[0], count=d.001$py),
+                        list(age=d.001$age, status=d.001$post, mar=d.001$mar.bf), sum)
+    }
+    
+    female.nmnc <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 1, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 1 & status == i, select=c(age, count)), all.x=TRUE))
+      female.nmnc <- cbind(female.nmnc, female_add[,2])
+    }
+    names(female.nmnc) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female.m <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 2, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 2 & status == i, select=c(age, count)), all.x=TRUE))
+      female.m <- cbind(female.m, female_add[,2])
+    }
+    names(female.m) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female.dnc <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 4, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 4 & status == i, select=c(age, count)), all.x=TRUE))
+      female.dnc <- cbind(female.dnc, female_add[,2])
+    }
+    names(female.dnc) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female.wnc <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 3, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 3 & status == i, select=c(age, count)), all.x=TRUE))
+      female.wnc <- cbind(female.wnc, female_add[,2])
+    }
+    names(female.wnc) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+
+    female.nmc <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 5, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 5 & status == i, select=c(age, count)), all.x=TRUE))
+      female.nmc <- cbind(female.nmc, female_add[,2])
+    }
+    names(female.nmc) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+
+    female.wc <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 7, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 7 & status == i, select=c(age, count)), all.x=TRUE))
+      female.wc <- cbind(female.wc, female_add[,2])
+    }
+    names(female.wc) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+
+    female.dc <- as.data.frame(merge(age, subset(temp, status == 0 & mar == 8, select=c(age, count)), all.x=TRUE))
+    for (i in 1:(nr2-1)) {
+      female_add <- as.data.frame(merge(age, subset(temp, mar == 8 & status == i, select=c(age, count)), all.x=TRUE))
+      female.dc <- cbind(female.dc, female_add[,2])
+    }
+    names(female.dc) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
+    
+    female <- cbind(female.nmnc, female.m[,2:(1+nr2)], female.dnc[,2:(1+nr2)], female.wnc[,2:(1+nr2)],
+                    female.nmc[,2:(1+nr2)], female.dc[,2:(1+nr2)], female.wc[,2:(1+nr2)])
+    
+    if(nrow(d.001)==0){
+      all.female <- data.frame(age=NA,x=NA)[F,]
+      all.female <- merge(age, all.female, all.x = T)
+    } else {
+      all <- aggregate(temp[,4], list(age=temp$age), sum)
+      all.female <- merge(age, subset(all, select=c(age, x)), all.x=TRUE)
+    }
+    names(all.female) <- c("age", "count")
+    
+    status <- data.frame(age=age$age, all=all.female$count, female[,2:ncol(female)])
+    status[, 2:ncol(status)] <- round(status[, 2:ncol(status)], 1)
+    risk.total <- data.frame(age = "Total", t(colSums(status[2:ncol(status)], na.rm = T)))
+    status <- rbind(status, risk.total)
+    rm(risk.total)
+    
+    # event
+    if(nrow(d.001)==0){
+      temp <- data.frame(age=NA,event=NA,mar=NA,count=NA)[F,]
+    } else {
+      temp <- aggregate(cbind(d.001[0], count=1),
+                        list(age=d.001$age, event=d.001$event, mar=d.001$mar.bf), sum)
+    }
+
+    female.par.nm <- as.data.frame(merge(age, subset(temp, event == 1 & mar==1, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==1, select=c(age, count)), all.x=TRUE))
+      female.par.nm <- cbind(female.par.nm, par_add[,2])
+    }
+    names(female.par.nm) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    female.par.m <- as.data.frame(merge(age, subset(temp, event == 1 & mar==2, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==2, select=c(age, count)), all.x=TRUE))
+      female.par.m <- cbind(female.par.m, par_add[,2])
+    }
+    names(female.par.m) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    female.par.d <- as.data.frame(merge(age, subset(temp, event == 1 & mar==4, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==4, select=c(age, count)), all.x=TRUE))
+      female.par.d <- cbind(female.par.d, par_add[,2])
+    }
+    names(female.par.d) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    female.par.w <- as.data.frame(merge(age, subset(temp, event == 1 & mar==3, select=c(age, count)), all.x=TRUE))
+    for (i in 2:nr2) {
+      par_add <- as.data.frame(merge(age, subset(temp, event == i & mar==3, select=c(age, count)), all.x=TRUE))
+      female.par.w <- cbind(female.par.w, par_add[,2])
+    }
+    names(female.par.w) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    
+    female.par <- cbind(female.par.nm, female.par.m[,2:(1+nr2)], female.par.d[,2:(1+nr2)], female.par.w[,2:(1+nr2)])
+    t <- temp[-which(temp$event == 0),]
+    if(nrow(t)==0){
+      all.female <- data.frame(age=NA,x=NA)[F,]
+      all.female <- merge(age, all.female, all.x = T)
+    } else {
+      all.female <- aggregate(t[,4], list(age=t$age), sum)
+      all.female <-  merge(age, subset(all, select=c(age, x)), all.x=TRUE)
+    }
+    names(all.female) <- c("age", "count")
+
   }
-  names(female.nm) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
-  female.m <- as.data.frame(merge(age, subset(temp, sex == 2 & status == 0 & mar == 2, select=c(age, count)), all.x=TRUE))
-  for (i in 1:(nr2-1)) {
-    female_add <- as.data.frame(merge(age, subset(temp, sex == 2 & mar == 2 & status == i, select=c(age, count)), all.x=TRUE))
-    female.m <- cbind(female.m, female_add[,2])
-  }
-  names(female.m) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
-  female.d <- as.data.frame(merge(age, subset(temp, sex == 2 & status == 0 & mar == 4, select=c(age, count)), all.x=TRUE))
-  for (i in 1:(nr2-1)) {
-    female_add <- as.data.frame(merge(age, subset(temp, sex == 2 & mar == 4 & status == i, select=c(age, count)), all.x=TRUE))
-    female.d <- cbind(female.d, female_add[,2])
-  }
-  names(female.d) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
-  female.w <- as.data.frame(merge(age, subset(temp, sex == 2 & status == 0 & mar == 3, select=c(age, count)), all.x=TRUE))
-  for (i in 1:(nr2-1)) {
-    female_add <- as.data.frame(merge(age, subset(temp, sex == 2 & mar == 3 & status == i, select=c(age, count)), all.x=TRUE))
-    female.w <- cbind(female.w, female_add[,2])
-  }
-  names(female.w) <- c("age", paste0("Parity ", 0:(nr2-1), sep = ""))
-  
-  female <- cbind(female.nm, female.m[,2:(1+nr2)], female.d[,2:(1+nr2)], female.w[,2:(1+nr2)])
-  all <- aggregate(temp[,5], list(age=temp$age, sex=temp$sex), sum)
-  all.female <- merge(age, subset(all, sex == 2, select=c(age, x)), all.x=TRUE)
-  names(all.female) <- c("age", "count")
-  
-  status <- data.frame(age=age$age, all=all.female$count/12, female[,2:ncol(female)]/12)
-  status[, 2:ncol(status)] <- round(status[, 2:ncol(status)], 1)
-  risk.total <- data.frame(age = "Total", t(colSums(status[2:ncol(status)], na.rm = T)))
-  status <- rbind(status, risk.total)
-  rm(risk.total)
-  
-  # event
-  temp <- aggregate(cbind(d.001[0], count=1),
-                    list(age=d.001$age, sex=d.001$sex, event=d.001$event, mar=d.001$mar.bf), sum)
-  
-  female.par.nm <- as.data.frame(merge(age, subset(temp, sex == 2 & event == 1 & mar==1, select=c(age, count)), all.x=TRUE))
-  for (i in 2:nr2) {
-    par_add <- as.data.frame(merge(age, subset(temp, sex == 2 & event == i & mar==1, select=c(age, count)), all.x=TRUE))
-    female.par.nm <- cbind(female.par.nm, par_add[,2])
-  }
-  names(female.par.nm) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
-  female.par.m <- as.data.frame(merge(age, subset(temp, sex == 2 & event == 1 & mar==2, select=c(age, count)), all.x=TRUE))
-  for (i in 2:nr2) {
-    par_add <- as.data.frame(merge(age, subset(temp, sex == 2 & event == i & mar==2, select=c(age, count)), all.x=TRUE))
-    female.par.m <- cbind(female.par.m, par_add[,2])
-  }
-  names(female.par.m) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
-  female.par.d <- as.data.frame(merge(age, subset(temp, sex == 2 & event == 1 & mar==4, select=c(age, count)), all.x=TRUE))
-  for (i in 2:nr2) {
-    par_add <- as.data.frame(merge(age, subset(temp, sex == 2 & event == i & mar==4, select=c(age, count)), all.x=TRUE))
-    female.par.d <- cbind(female.par.d, par_add[,2])
-  }
-  names(female.par.d) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
-  female.par.w <- as.data.frame(merge(age, subset(temp, sex == 2 & event == 1 & mar==3, select=c(age, count)), all.x=TRUE))
-  for (i in 2:nr2) {
-    par_add <- as.data.frame(merge(age, subset(temp, sex == 2 & event == i & mar==3, select=c(age, count)), all.x=TRUE))
-    female.par.w <- cbind(female.par.w, par_add[,2])
-  }
-  names(female.par.w) <- c("age", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
-  
-  female.par <- cbind(female.par.nm, female.par.m[,2:(1+nr2)], female.par.d[,2:(1+nr2)], female.par.w[,2:(1+nr2)])
-  t <- temp[-which(temp$event == 0),]
-  all <- aggregate(t[,5], list(age=t$age, sex=t$sex), sum)
-  all.female <-  merge(age, subset(all, sex == 2, select=c(age, x)), all.x=TRUE)
-  names(all.female) <- c("age", "count")
   
   event <- data.frame(age=age$age, all=all.female$count, female.par[, 2:ncol(female.par)])
   
@@ -2065,6 +3510,7 @@ pop.count.fertM <- function(data, nr2, nlb, nhb){
   return(list(status=status, event=event))
 }
 
+# 7 marital to be added #
 write.pop.fertM <- function(pop, param, name){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="right", border="TopBottomLeftRight", numFmt = "#,##0.0")
@@ -2075,46 +3521,104 @@ write.pop.fertM <- function(pop, param, name){
   t1Month <- as.numeric(param$t1Month)
   t2Month <- as.numeric(param$t2Month)
   nr2 <- as.numeric(param$nr2)
+  cohabit <- as.numeric(param$cohabit)
   
   period <- paste0((t1Month-1)%/%12+1900, " - ",(t2Month-1)%/%12+1900, sep="")
-  writeData(wb, sheet=1,
-            paste0("Table F1. Person-years by age and parity, ", title, ", ", period, name, sep=""),
-            startRow=4, startCol=2)
-  mergeCells(wb, sheet=1, cols=2:(nr2*4+3), rows=4)
-  writeData(wb, sheet=1, "Never Married", startRow=5, startCol=4, borders="all")
-  mergeCells(wb, sheet=1, cols=4:(nr2+3), rows=5)
-  writeData(wb, sheet=1, "Married", startRow=5, startCol=(4+nr2), borders="all")
-  mergeCells(wb, sheet=1, cols=(4+nr2):(nr2*2+3), rows=5)
-  writeData(wb, sheet=1, "Divorced", startRow=5, startCol=(4+nr2*2), borders="all")
-  mergeCells(wb, sheet=1, cols=(4+nr2*2):(nr2*3+3), rows=5)
-  writeData(wb, sheet=1, "Widowed", startRow=5, startCol=(4+nr2*3), borders="all")
-  mergeCells(wb, sheet=1, cols=(4+nr2*3):(nr2*4+3), rows=5)
-  colnames(pop$status) <-
-    c("Age", "All", rep(paste0("Parity ", 0:(nr2-1), sep = ""), 4))
-  writeData(wb, sheet=1, pop$status, startRow=6, startCol=2, borders="all")
-  addStyle(wb, sheet=1, style=forDatstl, rows=5:6, cols=2:(nr2*4+3), gridExpand = TRUE)
-  addStyle(wb, sheet=1, style=forDatstl2, rows=7:(6+nrow(pop$status)), cols=3:(nr2*4+3), gridExpand = TRUE)
-  setColWidths(wb, sheet=1, cols=2:(nr2*4+3), widths=10)
-  setColWidths(wb, sheet=1, cols=2, widths=6)
   
-  writeData(wb, sheet=2, paste0("Table F2. Number of women who given birth by age and parity, ", title, ", ", period, name, sep=""),
-            startRow=4, startCol=2)
-  mergeCells(wb, sheet=2, cols=2:(nr2*4+3), rows=4)
-  writeData(wb, sheet=2, "Never Married", startRow=5, startCol=4, borders="all")
-  mergeCells(wb, sheet=2, cols=4:(nr2+3), rows=5)
-  writeData(wb, sheet=2, "Married", startRow=5, startCol=(4+nr2), borders="all")
-  mergeCells(wb, sheet=2, cols=(4+nr2):(nr2*2+3), rows=5)
-  writeData(wb, sheet=2, "Divorced", startRow=5, startCol=(4+nr2*2), borders="all")
-  mergeCells(wb, sheet=2, cols=(4+nr2*2):(nr2*3+3), rows=5)
-  writeData(wb, sheet=2, "Widowed", startRow=5, startCol=(4+nr2*3), borders="all")
-  mergeCells(wb, sheet=2, cols=(4+nr2*3):(nr2*4+3), rows=5)
-  colnames(pop$event) <-
-    c("Age", "All", rep(c(paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = "")), 4))
-  writeData(wb, sheet=2, pop$event, startRow=6, startCol=2, borders="all")
-  addStyle(wb, sheet=2, style=forDatstl, rows=5:6, cols=2:(nr2*4+3), gridExpand = TRUE)
-  addStyle(wb, sheet=2, style=forDatstl2, rows=7:(6+nrow(pop$event)), cols=3:(nr2*4+3), gridExpand = TRUE)
-  setColWidths(wb, sheet=2, cols=2:(nr2*4+3), widths=10)
-  setColWidths(wb, sheet=2, cols=2, widths=6)
+  if (cohabit==0){
+    writeData(wb, sheet=1,
+              paste0("Table F1. Person-years by age and parity, ", title, ", ", period, name, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=1, cols=2:(nr2*4+3), rows=4)
+    writeData(wb, sheet=1, "Never Married", startRow=5, startCol=4, borders="all")
+    mergeCells(wb, sheet=1, cols=4:(nr2+3), rows=5)
+    writeData(wb, sheet=1, "Married", startRow=5, startCol=(4+nr2), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2):(nr2*2+3), rows=5)
+    writeData(wb, sheet=1, "Divorced", startRow=5, startCol=(4+nr2*2), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*2):(nr2*3+3), rows=5)
+    writeData(wb, sheet=1, "Widowed", startRow=5, startCol=(4+nr2*3), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*3):(nr2*4+3), rows=5)
+    colnames(pop$status) <-
+      c("Age", "All", rep(paste0("Parity ", 0:(nr2-1), sep = ""), 4))
+    writeData(wb, sheet=1, pop$status, startRow=6, startCol=2, borders="all")
+    addStyle(wb, sheet=1, style=forDatstl, rows=5:6, cols=2:(nr2*4+3), gridExpand = TRUE)
+    addStyle(wb, sheet=1, style=forDatstl2, rows=7:(6+nrow(pop$status)), cols=3:(nr2*4+3), gridExpand = TRUE)
+    setColWidths(wb, sheet=1, cols=2:(nr2*4+3), widths=10)
+    setColWidths(wb, sheet=1, cols=2, widths=6)
+    
+    writeData(wb, sheet=2, paste0("Table F2. Number of women who given birth by age and parity, ", title, ", ", period, name, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=2, cols=2:(nr2*4+3), rows=4)
+    writeData(wb, sheet=2, "Never Married", startRow=5, startCol=4, borders="all")
+    mergeCells(wb, sheet=2, cols=4:(nr2+3), rows=5)
+    writeData(wb, sheet=2, "Married", startRow=5, startCol=(4+nr2), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2):(nr2*2+3), rows=5)
+    writeData(wb, sheet=2, "Divorced", startRow=5, startCol=(4+nr2*2), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*2):(nr2*3+3), rows=5)
+    writeData(wb, sheet=2, "Widowed", startRow=5, startCol=(4+nr2*3), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*3):(nr2*4+3), rows=5)
+    colnames(pop$event) <-
+      c("Age", "All", rep(c(paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = "")), 4))
+    writeData(wb, sheet=2, pop$event, startRow=6, startCol=2, borders="all")
+    addStyle(wb, sheet=2, style=forDatstl, rows=5:6, cols=2:(nr2*4+3), gridExpand = TRUE)
+    addStyle(wb, sheet=2, style=forDatstl2, rows=7:(6+nrow(pop$event)), cols=3:(nr2*4+3), gridExpand = TRUE)
+    setColWidths(wb, sheet=2, cols=2:(nr2*4+3), widths=10)
+    setColWidths(wb, sheet=2, cols=2, widths=6)
+    
+  } else if (cohabit==1){
+    
+    writeData(wb, sheet=1,
+              paste0("Table F1. Person-years by age and parity, ", title, ", ", period, name, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=1, cols=2:(nr2*7+3), rows=4)
+    writeData(wb, sheet=1, "Never Married & Not Cohabiting", startRow=5, startCol=4, borders="all")
+    mergeCells(wb, sheet=1, cols=4:(nr2+3), rows=5)
+    writeData(wb, sheet=1, "Married", startRow=5, startCol=(4+nr2), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2):(nr2*2+3), rows=5)
+    writeData(wb, sheet=1, "Divorced & Not Cohabiting", startRow=5, startCol=(4+nr2*2), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*2):(nr2*3+3), rows=5)
+    writeData(wb, sheet=1, "Widowed & Not Cohabiting", startRow=5, startCol=(4+nr2*3), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*3):(nr2*4+3), rows=5)
+    writeData(wb, sheet=1, "Never Married & Cohabiting", startRow=5, startCol=(4+nr2*4), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*4):(nr2*5+3), rows=5)
+    writeData(wb, sheet=1, "Divorced & Cohabiting", startRow=5, startCol=(4+nr2*5), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*5):(nr2*6+3), rows=5)
+    writeData(wb, sheet=1, "Widowed & Cohabiting", startRow=5, startCol=(4+nr2*6), borders="all")
+    mergeCells(wb, sheet=1, cols=(4+nr2*6):(nr2*7+3), rows=5)
+    colnames(pop$status) <-
+      c("Age", "All", rep(paste0("Parity ", 0:(nr2-1), sep = ""), 7))
+    writeData(wb, sheet=1, pop$status, startRow=6, startCol=2, borders="all")
+    addStyle(wb, sheet=1, style=forDatstl, rows=5:6, cols=2:(nr2*7+3), gridExpand = TRUE)
+    addStyle(wb, sheet=1, style=forDatstl2, rows=7:(6+nrow(pop$status)), cols=3:(nr2*7+3), gridExpand = TRUE)
+    setColWidths(wb, sheet=1, cols=2:(nr2*7+3), widths=10)
+    setColWidths(wb, sheet=1, cols=2, widths=6)
+    
+    writeData(wb, sheet=2, paste0("Table F2. Number of women who given birth by age and parity, ", title, ", ", period, name, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=2, cols=2:(nr2*7+3), rows=4)
+    writeData(wb, sheet=2, "Never Married & Not Cohabiting", startRow=5, startCol=4, borders="all")
+    mergeCells(wb, sheet=2, cols=4:(nr2+3), rows=5)
+    writeData(wb, sheet=2, "Married", startRow=5, startCol=(4+nr2), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2):(nr2*2+3), rows=5)
+    writeData(wb, sheet=2, "Divorced & Not Cohabiting", startRow=5, startCol=(4+nr2*2), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*2):(nr2*3+3), rows=5)
+    writeData(wb, sheet=2, "Widowed & Not Cohabiting", startRow=5, startCol=(4+nr2*3), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*3):(nr2*4+3), rows=5)
+    writeData(wb, sheet=2, "Never Married & Cohabiting", startRow=5, startCol=(4+nr2*4), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*4):(nr2*5+3), rows=5)
+    writeData(wb, sheet=2, "Divorced & Cohabiting", startRow=5, startCol=(4+nr2*5), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*5):(nr2*6+3), rows=5)
+    writeData(wb, sheet=2, "Widowed & Cohabiting", startRow=5, startCol=(4+nr2*6), borders="all")
+    mergeCells(wb, sheet=2, cols=(4+nr2*6):(nr2*7+3), rows=5)
+    colnames(pop$event) <-
+      c("Age", "All", rep(c(paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = "")), 7))
+    writeData(wb, sheet=2, pop$event, startRow=6, startCol=2, borders="all")
+    addStyle(wb, sheet=2, style=forDatstl, rows=5:6, cols=2:(nr2*7+3), gridExpand = TRUE)
+    addStyle(wb, sheet=2, style=forDatstl2, rows=7:(6+nrow(pop$event)), cols=3:(nr2*7+3), gridExpand = TRUE)
+    setColWidths(wb, sheet=2, cols=2:(nr2*7+3), widths=10)
+    setColWidths(wb, sheet=2, cols=2, widths=6)
+    
+  }
   
   output.dir <- getwd()
   name <- gsub(", ", "-", name)
@@ -2175,6 +3679,7 @@ write.rates.fertM <- function(oe.rates, frequency, param, name, method){
     output.dir <- getwd()
     name <- gsub(", ", "-", name)
     saveWorkbook(wb, paste0(output.dir, "/", title, " 4 marital Fertility rates, ", method, name, ".xlsx", sep=""), overwrite=TRUE)
+  
   } else if (cohabit==1){
     
     writeData(wb, sheet=1, paste0("Table F2. Age-specific fertility o/e rates by parity and marital status, ", title, name, sep=""),
@@ -2254,6 +3759,7 @@ write.rates.fertM <- function(oe.rates, frequency, param, name, method){
   }
 }
 
+#### total rates output ####
 write.total.fert.subset <- function(total.rates, mean.age, param, name, mar){
   forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
   forDatstl2 <- createStyle(halign="left", border="TopBottomLeftRight", wrapText = TRUE)
@@ -2298,6 +3804,79 @@ write.total.fert.subset <- function(total.rates, mean.age, param, name, mar){
     addStyle(wb, sheet=1, style=forDatstl5, rows=seq(1, nrow(total.rates)+nrow(mean.age), by=4)+8, cols=3:(3+nr2), gridExpand = TRUE)
     setColWidths(wb, sheet=1, cols=3:(3+nr2), widths=10)
     setColWidths(wb, sheet=1, cols=2, widths=17)
+  }
+  
+  output.dir <- getwd()
+  saveWorkbook(wb, paste0(output.dir, "/", title, mar, " Fertility total rates", name, ".xlsx", sep=""), overwrite=T)
+  
+}
+
+write.total.fert.covar <- function(total.rates, mean.age, param, name, mar){
+  forDatstl <- createStyle(halign="center", border="TopBottomLeftRight", wrapText = TRUE)
+  forDatstl2 <- createStyle(halign="left", border="TopBottomLeftRight", wrapText = TRUE)
+  forDatstl3 <- createStyle(halign="right", border="TopBottomLeftRight", wrapText = TRUE, numFmt = "#,##0.0000")
+  forDatstl4 <- createStyle(halign="right", border="TopBottomLeftRight", wrapText = TRUE, numFmt = "#,##0.0")
+  forDatstl5 <- createStyle(halign="right", border="TopBottomLeftRight", wrapText = TRUE, numFmt = "#,##0.0%")
+  wb <- createWorkbook()
+  addWorksheet(wb, "total rates")
+  title <- as.character(param$title)
+  nr2 <- as.numeric(param$nr2)
+  
+  if (nrow(total.rates)==3){
+    writeData(wb, sheet=1, paste0("Table F3. Total fertility rates and mean ages of fertility by parity, ", title, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=1, cols=2:(3+nr2), rows=4)
+    
+    rownames(total.rates) <- c("Direct calculate", "Poisson estimate", "Difference%")
+    rownames(mean.age) <- c("Direct calculate", "Poisson estimate", "Difference%")
+    cname <- c("All", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    cname <- as.data.frame(t(cname))
+    
+    writeData(wb, sheet=1, cname, startRow=5, startCol=3, colNames = FALSE, borders="all")
+    writeData(wb, sheet=1, "Total fertility rates", startRow=6, startCol=2, borders="all")
+    writeData(wb, sheet=1, total.rates, startRow=7, startCol=2, colNames = FALSE, rowNames = TRUE, borders="all")
+    writeData(wb, sheet=1, "Mean age", startRow=10, startCol=2, borders="all")
+    writeData(wb, sheet=1, mean.age, startRow=11, startCol=2, colNames = FALSE, rowNames = TRUE, borders="all")
+    
+    addStyle(wb, sheet=1, style=forDatstl, rows=5, cols=2:(3+nr2))
+    addStyle(wb, sheet=1, style=forDatstl3, rows=6:8, cols=3:(3+nr2), gridExpand = TRUE)
+    addStyle(wb, sheet=1, style=forDatstl5, rows=9, cols=3:(3+nr2))
+    addStyle(wb, sheet=1, style=forDatstl4, rows=10:12, cols=3:(3+nr2), gridExpand = TRUE)
+    addStyle(wb, sheet=1, style=forDatstl5, rows=13, cols=3:(3+nr2))
+    setColWidths(wb, sheet=1, cols=3:(3+nr2), widths=10)
+    setColWidths(wb, sheet=1, cols=2, widths=17)
+    
+  } else {
+    
+    writeData(wb, sheet=1, paste0("Table F3. Total fertility rates of fertility by parity, ", title, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=1, cols=2:(4+nr2), rows=4)
+    
+    colnames(total.rates) <- c("Name", "Direct calculate and Poisson estimate", 
+                               "All", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    writeData(wb, sheet=1, total.rates, startRow=5, startCol=2, borders="all")
+    addStyle(wb, sheet=1, style=forDatstl, rows=5, cols=2:(4+nr2), gridExpand = TRUE)
+    addStyle(wb, sheet=1, style=forDatstl3, rows=6:(nrow(total.rates)+5), cols=4:(4+nr2), gridExpand = TRUE)
+    addStyle(wb, sheet=1, style=forDatstl5, rows=seq(1, nrow(total.rates), by=3)+7, cols=4:(4+nr2), gridExpand = TRUE)
+    setColWidths(wb, sheet=1, cols=4:(4+nr2), widths=10)
+    setColWidths(wb, sheet=1, cols=2, widths=13)
+    setColWidths(wb, sheet=1, cols=3, widths=17)
+    
+    addWorksheet(wb, "mean ages")
+    writeData(wb, sheet=2, paste0("Table F3. Mean ages of fertility by parity, ", title, sep=""),
+              startRow=4, startCol=2)
+    mergeCells(wb, sheet=2, cols=2:(4+nr2), rows=4)
+    
+    colnames(mean.age) <- c("Name", "Direct calculate and Poisson estimate", 
+                               "All", paste0("Parity ", 1:(nr2-1), sep = ""), paste0("Parity ", nr2, "+", sep = ""))
+    writeData(wb, sheet=2, mean.age, startRow=5, startCol=2, borders="all")
+    addStyle(wb, sheet=2, style=forDatstl, rows=5, cols=2:(4+nr2), gridExpand = TRUE)
+    addStyle(wb, sheet=2, style=forDatstl3, rows=6:(nrow(mean.age)+5), cols=4:(4+nr2), gridExpand = TRUE)
+    addStyle(wb, sheet=2, style=forDatstl5, rows=seq(1, nrow(mean.age), by=3)+7, cols=4:(4+nr2), gridExpand = TRUE)
+    setColWidths(wb, sheet=2, cols=4:(4+nr2), widths=10)
+    setColWidths(wb, sheet=2, cols=2, widths=13)
+    setColWidths(wb, sheet=2, cols=3, widths=17)
+    
   }
   
   output.dir <- getwd()
